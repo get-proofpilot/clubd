@@ -1502,10 +1502,9 @@
 
   function goTo(index) {
     if (index < 0 || index >= total || index === current) return;
-    const direction = index > current ? 1 : -1;
 
     slides[current].classList.remove('active');
-    slides[current].classList.add(direction > 0 ? 'prev' : '');
+    if (index > current) slides[current].classList.add('prev');
 
     current = index;
 
