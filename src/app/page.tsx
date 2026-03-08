@@ -162,10 +162,10 @@ export default function LandingPage() {
               heroLoaded ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-6'
             }`}
           >
-            Stop scrolling.
+            Free events near you.
             <br />
             <span className="bg-gradient-to-r from-[#E8553A] to-[#F4A261] bg-clip-text text-transparent">
-              Start showing up.
+              Friends to go with.
             </span>
           </h1>
 
@@ -175,9 +175,9 @@ export default function LandingPage() {
               heroLoaded ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-6'
             }`}
           >
-            Discover free local events in Southern California.
+            Discover local events happening in Southern California,
             <br className="hidden sm:block" />
-            See where friends are going. Actually do things.
+            see where your friends are going, and get more social.
           </p>
 
           {/* Email capture */}
