@@ -1,0 +1,306 @@
+@import "tailwindcss";
+
+/* ═══════════════════════════════════════════════════════════════
+   CLUBD BRAND SYSTEM — "Golden Hour"
+   Confident minimalism with SoCal warmth.
+   ═══════════════════════════════════════════════════════════════ */
+
+:root {
+  /* ── Brand Colors ──────────────────────────────────────────── */
+  --color-primary: #E8553A;
+  --color-primary-light: #F0755E;
+  --color-primary-dark: #C44530;
+  --color-primary-muted: #E8553A20;
+
+  --color-secondary: #1C1E2A;
+
+  --color-accent: #D4953A;
+  --color-accent-light: #E5B366;
+  --color-accent-muted: #D4953A20;
+
+  --color-success: #5A9E6F;
+  --color-success-muted: #5A9E6F1A;
+
+  /* ── Surfaces ──────────────────────────────────────────────── */
+  --color-bg: #F7F4EF;
+  --color-card: #FFFFFF;
+  --color-surface-subtle: #F2F0EB;
+
+  /* ── Text ──────────────────────────────────────────────────── */
+  --color-text-primary: #2D2F3A;
+  --color-text-secondary: #6B6D7B;
+  --color-text-muted: #9B9DA8;
+  --color-text-inverse: #FFFFFF;
+
+  /* ── Borders ───────────────────────────────────────────────── */
+  --color-border: #E8E6E1;
+  --color-border-subtle: #F0EDE8;
+  --color-border-strong: #D4D1CC;
+
+  /* ── Shadows (warm-tinted, not blue-gray) ──────────────────── */
+  --shadow-xs: 0 1px 2px rgba(44, 47, 58, 0.04);
+  --shadow-card: 0 1px 3px rgba(44, 47, 58, 0.05), 0 4px 16px rgba(44, 47, 58, 0.03);
+  --shadow-card-hover: 0 8px 24px rgba(44, 47, 58, 0.08), 0 2px 8px rgba(44, 47, 58, 0.04);
+  --shadow-nav: 0 -1px 0 rgba(44, 47, 58, 0.06), 0 -8px 24px rgba(44, 47, 58, 0.04);
+  --shadow-pill: 0 1px 3px rgba(44, 47, 58, 0.08);
+  --shadow-elevated: 0 12px 40px rgba(44, 47, 58, 0.1), 0 4px 12px rgba(44, 47, 58, 0.06);
+  --shadow-button: 0 2px 8px rgba(232, 85, 58, 0.3);
+
+  /* ── Radii ─────────────────────────────────────────────────── */
+  --radius-sm: 8px;
+  --radius-md: 12px;
+  --radius-card: 20px;
+  --radius-pill: 999px;
+  --radius-button: 14px;
+
+  /* ── Category Colors ───────────────────────────────────────── */
+  --cat-fitness: #C44B3F;
+  --cat-wellness: #5A9E6F;
+  --cat-social: #E8553A;
+  --cat-outdoor: #3478A7;
+  --cat-food-drink: #C88B2E;
+  --cat-creative: #7B5EA7;
+  --cat-family: #D47B8E;
+  --cat-community: #2E8E8E;
+}
+
+/* ── Tailwind v4 Theme Bridge ────────────────────────────────── */
+@theme inline {
+  --color-primary: var(--color-primary);
+  --color-primary-light: var(--color-primary-light);
+  --color-primary-dark: var(--color-primary-dark);
+  --color-secondary: var(--color-secondary);
+  --color-accent: var(--color-accent);
+  --color-accent-light: var(--color-accent-light);
+  --color-success: var(--color-success);
+  --color-bg: var(--color-bg);
+  --color-card: var(--color-card);
+  --color-surface-subtle: var(--color-surface-subtle);
+  --color-text-primary: var(--color-text-primary);
+  --color-text-secondary: var(--color-text-secondary);
+  --color-text-muted: var(--color-text-muted);
+  --color-text-inverse: var(--color-text-inverse);
+  --color-border: var(--color-border);
+  --color-border-subtle: var(--color-border-subtle);
+
+  --font-display: var(--font-syne);
+  --font-body: var(--font-outfit);
+
+  --shadow-card: var(--shadow-card);
+  --shadow-card-hover: var(--shadow-card-hover);
+  --shadow-nav: var(--shadow-nav);
+  --shadow-pill: var(--shadow-pill);
+  --shadow-elevated: var(--shadow-elevated);
+  --shadow-button: var(--shadow-button);
+
+  --radius-sm: var(--radius-sm);
+  --radius-md: var(--radius-md);
+  --radius-card: var(--radius-card);
+  --radius-pill: var(--radius-pill);
+  --radius-button: var(--radius-button);
+}
+
+/* ═══════════════════════════════════════════════════════════════
+   BASE — inside @layer so Tailwind utilities can override
+   ═══════════════════════════════════════════════════════════════ */
+@layer base {
+  html {
+    font-size: 125%;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+    text-rendering: optimizeLegibility;
+  }
+
+  body {
+    font-family: var(--font-outfit), -apple-system, BlinkMacSystemFont, sans-serif;
+    background-color: var(--color-bg);
+    color: var(--color-text-primary);
+    min-height: 100dvh;
+    overflow-x: hidden;
+    position: relative;
+  }
+
+  /* Noise texture — adds tactile warmth like paper grain */
+  body::after {
+    content: '';
+    position: fixed;
+    inset: 0;
+    opacity: 0.025;
+    pointer-events: none;
+    z-index: 100;
+    background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 512 512' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.7' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+    background-repeat: repeat;
+    background-size: 256px 256px;
+  }
+
+  /* Display font for headings */
+  h1, h2, h3, .font-display {
+    font-family: var(--font-syne), sans-serif;
+  }
+
+  /* Selection color */
+  ::selection {
+    background-color: rgba(232, 85, 58, 0.15);
+    color: var(--color-secondary);
+  }
+}
+
+/* ═══════════════════════════════════════════════════════════════
+   COMPONENTS — inside @layer so Tailwind utilities can override
+   ═══════════════════════════════════════════════════════════════ */
+@layer components {
+  /* Scrollbar */
+  .scrollbar-hide {
+    -ms-overflow-style: none;
+    scrollbar-width: none;
+  }
+  .scrollbar-hide::-webkit-scrollbar {
+    display: none;
+  }
+
+  /* Shadows */
+  .card-shadow {
+    box-shadow: var(--shadow-card);
+  }
+  .card-shadow-hover {
+    box-shadow: var(--shadow-card-hover);
+  }
+
+  /* Glass Morphism — frosted warm panels */
+  .glass {
+    background: rgba(247, 244, 239, 0.88);
+    backdrop-filter: blur(20px) saturate(1.2);
+    -webkit-backdrop-filter: blur(20px) saturate(1.2);
+  }
+  .glass-white {
+    background: rgba(255, 255, 255, 0.92);
+    backdrop-filter: blur(20px) saturate(1.2);
+    -webkit-backdrop-filter: blur(20px) saturate(1.2);
+  }
+  .glass-dark {
+    background: rgba(28, 30, 42, 0.65);
+    backdrop-filter: blur(16px);
+    -webkit-backdrop-filter: blur(16px);
+  }
+
+  /* Gradient Overlays — warm charcoal-navy, not pure black */
+  .gradient-overlay-bottom {
+    background: linear-gradient(
+      to top,
+      rgba(28, 30, 42, 0.78) 0%,
+      rgba(28, 30, 42, 0.35) 45%,
+      rgba(28, 30, 42, 0) 100%
+    );
+  }
+  .gradient-overlay-top {
+    background: linear-gradient(
+      to bottom,
+      rgba(28, 30, 42, 0.25) 0%,
+      rgba(28, 30, 42, 0) 55%
+    );
+  }
+
+  /* Category Badges — each a SoCal landscape color */
+  .badge-fitness { background-color: var(--cat-fitness); }
+  .badge-wellness { background-color: var(--cat-wellness); }
+  .badge-social { background-color: var(--cat-social); }
+  .badge-outdoor { background-color: var(--cat-outdoor); }
+  .badge-food-drink { background-color: var(--cat-food-drink); }
+  .badge-creative { background-color: var(--cat-creative); }
+  .badge-family { background-color: var(--cat-family); }
+  .badge-community { background-color: var(--cat-community); }
+
+  /* Touch Targets (44px minimum per Apple HIG) */
+  .tap-target {
+    min-height: 44px;
+    min-width: 44px;
+  }
+
+  /* Safe Area Insets */
+  .pb-safe {
+    padding-bottom: env(safe-area-inset-bottom, 0px);
+  }
+  .pt-safe {
+    padding-top: env(safe-area-inset-top, 0px);
+  }
+
+  /* Card lift */
+  .transition-lift {
+    transition: transform 0.25s cubic-bezier(0.22, 1, 0.36, 1),
+                box-shadow 0.25s cubic-bezier(0.22, 1, 0.36, 1);
+  }
+  .transition-lift:active {
+    transform: scale(0.97);
+  }
+
+  /* Button press */
+  .btn-press {
+    transition: transform 0.15s cubic-bezier(0.22, 1, 0.36, 1),
+                box-shadow 0.15s cubic-bezier(0.22, 1, 0.36, 1);
+  }
+  .btn-press:active {
+    transform: scale(0.96);
+  }
+
+  /* Staggered card entrance */
+  .animate-fade-up {
+    animation: fadeUp 0.6s cubic-bezier(0.22, 1, 0.36, 1) forwards;
+    animation-delay: calc(var(--stagger, 0) * 80ms);
+    opacity: 0;
+  }
+
+  /* Section header slide */
+  .animate-slide-right {
+    animation: slideRight 0.5s cubic-bezier(0.22, 1, 0.36, 1) forwards;
+    opacity: 0;
+  }
+
+  /* Pill/badge scale in */
+  .animate-scale-in {
+    animation: scaleIn 0.4s cubic-bezier(0.22, 1, 0.36, 1) forwards;
+    animation-delay: calc(var(--stagger, 0) * 60ms);
+    opacity: 0;
+  }
+}
+
+/* Hover states need @media outside of @layer for proper cascade */
+@layer components {
+  @media (hover: hover) {
+    .transition-lift:hover {
+      transform: translateY(-4px);
+      box-shadow: var(--shadow-card-hover);
+    }
+    .btn-press:hover {
+      transform: translateY(-1px);
+    }
+  }
+}
+
+/* ═══════════════════════════════════════════════════════════════
+   KEYFRAMES — these don't conflict with layers
+   ═══════════════════════════════════════════════════════════════ */
+@keyframes fadeUp {
+  from {
+    opacity: 0;
+    transform: translateY(24px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes slideRight {
+  from { opacity: 0; transform: translateX(-16px); }
+  to { opacity: 1; transform: translateX(0); }
+}
+
+@keyframes scaleIn {
+  from { opacity: 0; transform: scale(0.85); }
+  to { opacity: 1; transform: scale(1); }
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; transform: translateX(20px); }
+  to { opacity: 1; transform: translateX(0); }
+}
