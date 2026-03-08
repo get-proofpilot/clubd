@@ -11,7 +11,7 @@ interface NavItem {
 }
 
 const navItems: NavItem[] = [
-  { href: "/", label: "Explore", icon: Compass },
+  { href: "/explore", label: "Explore", icon: Compass },
   { href: "/discover", label: "Discover", icon: Map },
   { href: "/activity", label: "Activity", icon: Flame },
   { href: "/events", label: "My Events", icon: CalendarDays },
@@ -22,7 +22,6 @@ export default function BottomNav() {
   const pathname = usePathname();
 
   const isActive = (href: string) => {
-    if (href === "/") return pathname === "/";
     return pathname.startsWith(href);
   };
 
