@@ -1,0 +1,16 @@
+{
+  "name": "Clubd — Find Your People",
+  "short_name": "Clubd",
+  "description": "Discover free local events in Southern California. See where friends are going and build your community.",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#F7F4EF",
+  "theme_color": "#E8553A",
+  "icons": [
+    {
+      "src": "/icon.svg",
+      "sizes": "any",
+      "type": "image/svg+xml"
+    }
+  ]
+}
