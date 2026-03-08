@@ -581,6 +581,45 @@
     background-size: 256px;
   }
 
+  /* ── Product Feature List ──────────────────────────────────── */
+  .product-features {
+    display: flex;
+    flex-direction: column;
+    gap: 0;
+  }
+
+  .product-feature {
+    display: flex;
+    align-items: flex-start;
+    gap: 10px;
+    padding: 10px 0;
+    border-top: 1px solid rgba(255,255,255,0.06);
+  }
+
+  .product-feature:last-child { padding-bottom: 0; }
+
+  .pf-icon {
+    font-size: 16px;
+    line-height: 1;
+    flex-shrink: 0;
+    margin-top: 2px;
+  }
+
+  .pf-name {
+    font-size: 13px;
+    font-weight: 600;
+    color: white;
+    margin: 0;
+    line-height: 1.3;
+  }
+
+  .pf-desc {
+    font-size: 12px;
+    color: rgba(255,255,255,0.45);
+    margin: 2px 0 0;
+    line-height: 1.4;
+  }
+
   /* ── Mobile / Responsive ───────────────────────────────────── */
   @media (max-width: 768px) {
     .slide {
@@ -852,54 +891,136 @@
   <!-- ═══════════════════════════════════════════════════════════
        SLIDE 5 — PRODUCT
        ═══════════════════════════════════════════════════════════ -->
-  <div class="slide bg-warm" data-slide="4">
+  <div class="slide bg-dark" data-slide="4">
     <div class="slide-number">04 &mdash; The Product</div>
-    <h2>Beautiful. Social. Local.</h2>
-    <p class="subtitle" style="color: var(--text-secondary);">Designed mobile-first, works beautifully at every screen size.</p>
-    <div class="five-col">
-      <div class="flex-col gap-8" style="text-align: center;">
-        <div style="background: var(--card); border: 1px solid var(--border); border-radius: 16px; padding: 16px; box-shadow: 0 4px 16px rgba(44,47,58,0.06);">
-          <div style="font-size: 28px; margin-bottom: 8px;">&#x1F3E0;</div>
-          <h3 style="font-size: 14px;">Home Feed</h3>
-          <p style="font-size: 12px; color: var(--text-muted); margin-top: 4px;">Hero carousel, friends row, time-sorted events with category filters</p>
+    <h2>Three products in one platform.</h2>
+    <p class="subtitle" style="color: rgba(255,255,255,0.55); max-width: 620px;">Every side of the marketplace gets purpose-built tools. Users discover. Hosts grow. Revenue compounds.</p>
+
+    <div class="three-col mt-32" style="align-items: stretch;">
+
+      <!-- CONSUMER SIDE -->
+      <div class="card flex-col" style="gap: 0;">
+        <div style="display: flex; align-items: center; gap: 12px; margin-bottom: 20px;">
+          <div class="icon-circle" style="background: rgba(232,85,58,0.15);">&#x1F50D;</div>
+          <div>
+            <h3 style="color: white; font-size: 17px; margin: 0;">Discover &amp; Go</h3>
+            <p style="font-size: 12px; color: rgba(255,255,255,0.4); margin: 0;">For event-goers</p>
+          </div>
+        </div>
+        <div class="product-features">
+          <div class="product-feature">
+            <span class="pf-icon">&#x1F5FA;</span>
+            <div>
+              <p class="pf-name">Interactive Map</p>
+              <p class="pf-desc">Full-screen map with event pins, swipeable cards, and neighborhood filtering</p>
+            </div>
+          </div>
+          <div class="product-feature">
+            <span class="pf-icon">&#x1F46F;</span>
+            <div>
+              <p class="pf-name">Social Discovery Feed</p>
+              <p class="pf-desc">See what friends are attending, "people like you" recs, and trending events nearby</p>
+            </div>
+          </div>
+          <div class="product-feature">
+            <span class="pf-icon">&#x26A1;</span>
+            <div>
+              <p class="pf-name">One-Tap RSVP &amp; Tickets</p>
+              <p class="pf-desc">Instant RSVP for free events, integrated checkout for paid &mdash; calendar sync and smart reminders</p>
+            </div>
+          </div>
+          <div class="product-feature">
+            <span class="pf-icon">&#x2B50;</span>
+            <div>
+              <p class="pf-name">Reviews &amp; Profiles</p>
+              <p class="pf-desc">Rate events, build your event history, follow hosts and friends with shared tastes</p>
+            </div>
+          </div>
         </div>
       </div>
-      <div class="flex-col gap-8" style="text-align: center;">
-        <div style="background: var(--card); border: 1px solid var(--border); border-radius: 16px; padding: 16px; box-shadow: 0 4px 16px rgba(44,47,58,0.06);">
-          <div style="font-size: 28px; margin-bottom: 8px;">&#x1F5FA;</div>
-          <h3 style="font-size: 14px;">Discover Map</h3>
-          <p style="font-size: 12px; color: var(--text-muted); margin-top: 4px;">Full-screen interactive map with event pins and swipeable card carousel</p>
+
+      <!-- HOST SIDE -->
+      <div class="card flex-col" style="gap: 0;">
+        <div style="display: flex; align-items: center; gap: 12px; margin-bottom: 20px;">
+          <div class="icon-circle" style="background: rgba(212,149,58,0.15);">&#x1F451;</div>
+          <div>
+            <h3 style="color: white; font-size: 17px; margin: 0;">Host &amp; Manage</h3>
+            <p style="font-size: 12px; color: rgba(255,255,255,0.4); margin: 0;">For organizers &amp; studios</p>
+          </div>
+        </div>
+        <div class="product-features">
+          <div class="product-feature">
+            <span class="pf-icon">&#x1F3AB;</span>
+            <div>
+              <p class="pf-name">Booking Engine</p>
+              <p class="pf-desc">Ticketing, tiered pricing, promo codes, group discounts &mdash; all with built-in payment processing</p>
+            </div>
+          </div>
+          <div class="product-feature">
+            <span class="pf-icon">&#x1F4CB;</span>
+            <div>
+              <p class="pf-name">Event Studio</p>
+              <p class="pf-desc">Create, clone, and manage recurring events with co-host tools and capacity controls</p>
+            </div>
+          </div>
+          <div class="product-feature">
+            <span class="pf-icon">&#x1F4CA;</span>
+            <div>
+              <p class="pf-name">Attendee CRM &amp; Analytics</p>
+              <p class="pf-desc">Real-time RSVP tracking, waitlists, QR check-in, demographics, and conversion insights</p>
+            </div>
+          </div>
+          <div class="product-feature">
+            <span class="pf-icon">&#x1F4AC;</span>
+            <div>
+              <p class="pf-name">Attendee Messaging</p>
+              <p class="pf-desc">Announcements, updates, reminders, and post-event follow-ups to your full attendee list</p>
+            </div>
+          </div>
         </div>
       </div>
-      <div class="flex-col gap-8" style="text-align: center;">
-        <div style="background: var(--card); border: 1px solid var(--border); border-radius: 16px; padding: 16px; box-shadow: 0 4px 16px rgba(44,47,58,0.06);">
-          <div style="font-size: 28px; margin-bottom: 8px;">&#x1F4C4;</div>
-          <h3 style="font-size: 14px;">Event Detail</h3>
-          <p style="font-size: 12px; color: var(--text-muted); margin-top: 4px;">Tabs, mini map, RSVP, reviews, friend activity, host profiles</p>
+
+      <!-- GROWTH / MONETIZATION SIDE -->
+      <div class="card flex-col" style="gap: 0;">
+        <div style="display: flex; align-items: center; gap: 12px; margin-bottom: 20px;">
+          <div class="icon-circle" style="background: rgba(90,158,111,0.15);">&#x1F680;</div>
+          <div>
+            <h3 style="color: white; font-size: 17px; margin: 0;">Promote &amp; Grow</h3>
+            <p style="font-size: 12px; color: rgba(255,255,255,0.4); margin: 0;">Marketing &amp; monetization</p>
+          </div>
+        </div>
+        <div class="product-features">
+          <div class="product-feature">
+            <span class="pf-icon">&#x1F4E3;</span>
+            <div>
+              <p class="pf-name">Promoted Events</p>
+              <p class="pf-desc">Boost visibility in the discovery feed with self-serve ad tools and category sponsorships</p>
+            </div>
+          </div>
+          <div class="product-feature">
+            <span class="pf-icon">&#x1F3A8;</span>
+            <div>
+              <p class="pf-name">Marketing Team</p>
+              <p class="pf-desc">Professional graphics, social media campaigns, and paid ad management &mdash; done for you through the platform</p>
+            </div>
+          </div>
+          <div class="product-feature">
+            <span class="pf-icon">&#x1F4B0;</span>
+            <div>
+              <p class="pf-name">Revenue Dashboard</p>
+              <p class="pf-desc">Track ticket sales, payouts, promotional ROI, and attendee growth from one dashboard</p>
+            </div>
+          </div>
+          <div class="product-feature">
+            <span class="pf-icon">&#x1F91D;</span>
+            <div>
+              <p class="pf-name">Sponsor Marketplace</p>
+              <p class="pf-desc">Connect with brands for co-branded events, product sampling, and sponsorship deals</p>
+            </div>
+          </div>
         </div>
       </div>
-      <div class="flex-col gap-8" style="text-align: center;">
-        <div style="background: var(--card); border: 1px solid var(--border); border-radius: 16px; padding: 16px; box-shadow: 0 4px 16px rgba(44,47,58,0.06);">
-          <div style="font-size: 28px; margin-bottom: 8px;">&#x1F4CD;</div>
-          <h3 style="font-size: 14px;">Top Spots</h3>
-          <p style="font-size: 12px; color: var(--text-muted); margin-top: 4px;">Venue directory with ratings, categories, and event history</p>
-        </div>
-      </div>
-      <div class="flex-col gap-8" style="text-align: center;">
-        <div style="background: var(--card); border: 1px solid var(--border); border-radius: 16px; padding: 16px; box-shadow: 0 4px 16px rgba(44,47,58,0.06);">
-          <div style="font-size: 28px; margin-bottom: 8px;">&#x1F464;</div>
-          <h3 style="font-size: 14px;">Profiles</h3>
-          <p style="font-size: 12px; color: var(--text-muted); margin-top: 4px;">Event history, reviews, interests, host pages with follow system</p>
-        </div>
-      </div>
-    </div>
-    <div style="margin-top: 24px; display: flex; gap: 12px; flex-wrap: wrap;">
-      <span class="badge badge-primary">8 Event Categories</span>
-      <span class="badge badge-primary">13+ Live Demo Events</span>
-      <span class="badge badge-primary">Interactive Map</span>
-      <span class="badge badge-primary">Onboarding Flow</span>
-      <span class="badge badge-primary">Review System</span>
-      <span class="badge badge-primary">Host Profiles</span>
+
     </div>
   </div>
 
