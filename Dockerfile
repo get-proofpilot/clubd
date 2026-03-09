@@ -1,10 +1,10 @@
 FROM node:22-alpine AS base
 
-# Install dependencies only when needed
+# Install all dependencies for build
 FROM base AS deps
 WORKDIR /app
 COPY package.json package-lock.json ./
-RUN npm ci --omit=dev
+RUN npm ci
 
 # Build the application
 FROM base AS builder
