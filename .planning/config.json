@@ -1,0 +1,9 @@
+{
+  "project": "clubd",
+  "version": "1.0.0",
+  "executor_model": "opus",
+  "commit_docs": true,
+  "workflow": {
+    "auto_advance": false
+  }
+}
