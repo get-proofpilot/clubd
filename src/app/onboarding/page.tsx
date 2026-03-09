@@ -14,7 +14,10 @@ import {
   HandHelping,
   ArrowRight,
   Locate,
+  Loader2,
 } from 'lucide-react';
+import { authClient } from '@/lib/auth-client';
+import { trpc } from '@/lib/trpc';
 
 const LOCATIONS = [
   { id: 'oc', label: 'Orange County' },
@@ -28,18 +31,21 @@ const INTERESTS = [
   { id: 'wellness', label: 'Wellness', icon: Heart },
   { id: 'social', label: 'Social', icon: Users },
   { id: 'outdoor', label: 'Outdoor', icon: Mountain },
-  { id: 'food-drink', label: 'Food & Drink', icon: UtensilsCrossed },
+  { id: 'food_drink', label: 'Food & Drink', icon: UtensilsCrossed },
   { id: 'creative', label: 'Creative', icon: Palette },
   { id: 'family', label: 'Family', icon: Baby },
   { id: 'community', label: 'Community', icon: HandHelping },
-];
+] as const;
 
 export default function OnboardingPage() {
   const router = useRouter();
+  const session = authClient.useSession();
   const [step, setStep] = useState<1 | 2>(1);
   const [selectedLocation, setSelectedLocation] = useState<string | null>(null);
   const [selectedInterests, setSelectedInterests] = useState<Set<string>>(new Set());
   const [locationButtonText, setLocationButtonText] = useState('Use my location');
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
 
   function toggleInterest(id: string) {
     setSelectedInterests((prev) => {
@@ -47,6 +53,42 @@ export default function OnboardingPage() {
       if (next.has(id)) { next.delete(id); } else { next.add(id); }
       return next;
     });
+  }
+
+  function getLocationLabel(id: string): string {
+    return LOCATIONS.find((loc) => loc.id === id)?.label ?? id;
+  }
+
+  async function handleComplete() {
+    if (!selectedLocation || selectedInterests.size < 2) return;
+
+    setLoading(true);
+    setError(null);
+
+    try {
+      await trpc.user.completeOnboarding.mutate({
+        location: getLocationLabel(selectedLocation),
+        interests: Array.from(selectedInterests) as (
+          "fitness" | "wellness" | "social" | "outdoor" |
+          "food_drink" | "creative" | "family" | "community"
+        )[],
+      });
+
+      router.push('/');
+    } catch {
+      setError('Something went wrong saving your preferences. Please try again.');
+    } finally {
+      setLoading(false);
+    }
+  }
+
+  // Show loading while session is being checked
+  if (session.isPending) {
+    return (
+      <div className="flex min-h-[100dvh] items-center justify-center bg-[var(--color-bg)]">
+        <Loader2 className="h-8 w-8 animate-spin text-[var(--color-primary)]" />
+      </div>
+    );
   }
 
   return (
@@ -60,6 +102,24 @@ export default function OnboardingPage() {
           <div className="h-full rounded-full bg-[var(--color-primary)] transition-all duration-500" style={{ width: step === 2 ? '100%' : '0%' }} />
         </div>
       </div>
+
+      {/* Welcome message for authenticated users */}
+      {session.data?.user && (
+        <div className="w-full max-w-md px-6 pt-4">
+          <p className="text-sm text-[var(--color-text-secondary)]">
+            Welcome, <span className="font-semibold text-[var(--color-text-primary)]">{session.data.user.name || 'there'}</span>
+          </p>
+        </div>
+      )}
+
+      {/* Error Display */}
+      {error && (
+        <div className="w-full max-w-md px-6 pt-4">
+          <div className="rounded-[var(--radius-card)] border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700">
+            {error}
+          </div>
+        </div>
+      )}
 
       {/* Step Content */}
       <div className="flex flex-1 flex-col w-full max-w-md px-6 pt-8">
@@ -149,7 +209,9 @@ export default function OnboardingPage() {
                       {interest.label}
                     </span>
                     {selected && (
-                      <div className="absolute -right-1 -top-1 flex h-5 w-5 items-center justify-center rounded-full bg-[var(--color-primary)] text-[10px] font-bold text-white">✓</div>
+                      <div className="absolute -right-1 -top-1 flex h-5 w-5 items-center justify-center rounded-full bg-[var(--color-primary)] text-[10px] font-bold text-white">
+                        &#10003;
+                      </div>
                     )}
                   </button>
                 );
@@ -172,12 +234,16 @@ export default function OnboardingPage() {
           </button>
         ) : (
           <button
-            onClick={() => router.push('/')}
-            disabled={selectedInterests.size < 2}
-            className={`btn-press flex h-14 w-full items-center justify-center gap-2 rounded-[var(--radius-button)] font-bold text-white transition-all ${selectedInterests.size >= 2 ? 'bg-[var(--color-primary)]' : 'bg-[var(--color-text-muted)] cursor-not-allowed'}`}
-            style={selectedInterests.size >= 2 ? { boxShadow: 'var(--shadow-button)' } : undefined}
+            onClick={handleComplete}
+            disabled={selectedInterests.size < 2 || loading}
+            className={`btn-press flex h-14 w-full items-center justify-center gap-2 rounded-[var(--radius-button)] font-bold text-white transition-all ${selectedInterests.size >= 2 && !loading ? 'bg-[var(--color-primary)]' : 'bg-[var(--color-text-muted)] cursor-not-allowed'}`}
+            style={selectedInterests.size >= 2 && !loading ? { boxShadow: 'var(--shadow-button)' } : undefined}
           >
-            Get Started
+            {loading ? (
+              <Loader2 className="h-5 w-5 animate-spin" />
+            ) : (
+              'Get Started'
+            )}
           </button>
         )}
       </div>
