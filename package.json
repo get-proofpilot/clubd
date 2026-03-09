@@ -3,10 +3,15 @@
   "version": "0.1.0",
   "private": true,
   "scripts": {
-    "dev": "next dev",
+    "dev": "next dev --turbopack",
     "build": "next build",
     "start": "next start",
-    "lint": "eslint"
+    "lint": "npx @biomejs/biome check .",
+    "db:push": "drizzle-kit push",
+    "db:generate": "drizzle-kit generate",
+    "db:migrate": "drizzle-kit migrate",
+    "db:seed": "npx tsx src/server/db/seed.ts",
+    "db:setup": "npx tsx src/server/db/setup-extensions.ts"
   },
   "dependencies": {
     "@base-ui/react": "^1.2.0",

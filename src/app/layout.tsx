@@ -2,6 +2,7 @@ import type { Metadata, Viewport } from "next";
 import { Syne, Outfit, Geist } from "next/font/google";
 import "./globals.css";
 import { cn } from "@/lib/utils";
+import { Providers } from "./providers";
 
 const geist = Geist({subsets:['latin'],variable:'--font-sans'});
 
@@ -100,7 +101,9 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="en" className={cn(syne.variable, outfit.variable, "font-sans", geist.variable)}>
-      <body className="antialiased">{children}</body>
+      <body className="antialiased">
+        <Providers>{children}</Providers>
+      </body>
     </html>
   );
 }
