@@ -1,8 +1,11 @@
 'use client';
 
+import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
-import { Phone } from 'lucide-react';
+import { Phone, ArrowLeft, Loader2 } from 'lucide-react';
+import { authClient } from '@/lib/auth-client';
+import { phoneNumberSchema, otpCodeSchema } from '@/lib/validators/auth';
 
 function AppleIcon() {
   return (
@@ -23,8 +26,112 @@ function GoogleIcon() {
   );
 }
 
+type LoginStep = 'methods' | 'phone-input' | 'otp-verify';
+
 export default function LoginPage() {
   const router = useRouter();
+  const [step, setStep] = useState<LoginStep>('methods');
+  const [phoneNumber, setPhoneNumber] = useState('');
+  const [otpCode, setOtpCode] = useState('');
+  const [error, setError] = useState<string | null>(null);
+  const [loading, setLoading] = useState(false);
+
+  function formatPhoneDisplay(value: string): string {
+    const digits = value.replace(/\D/g, '');
+    if (digits.length <= 3) return digits;
+    if (digits.length <= 6) return `(${digits.slice(0, 3)}) ${digits.slice(3)}`;
+    return `(${digits.slice(0, 3)}) ${digits.slice(3, 6)}-${digits.slice(6, 10)}`;
+  }
+
+  function handlePhoneInputChange(raw: string) {
+    const digits = raw.replace(/\D/g, '').slice(0, 10);
+    setPhoneNumber(digits);
+    setError(null);
+  }
+
+  function toE164(digits: string): string {
+    return `+1${digits}`;
+  }
+
+  async function handleSendOtp() {
+    const e164 = toE164(phoneNumber);
+    const result = phoneNumberSchema.safeParse(e164);
+    if (!result.success) {
+      setError('Please enter a valid 10-digit US phone number.');
+      return;
+    }
+
+    setLoading(true);
+    setError(null);
+
+    try {
+      const response = await authClient.phoneNumber.sendOtp({
+        phoneNumber: e164,
+      });
+
+      if (response.error) {
+        setError(response.error.message || 'Failed to send verification code. Please try again.');
+        return;
+      }
+
+      setStep('otp-verify');
+    } catch {
+      setError('Something went wrong. Please try again.');
+    } finally {
+      setLoading(false);
+    }
+  }
+
+  async function handleVerifyOtp() {
+    const codeResult = otpCodeSchema.safeParse(otpCode);
+    if (!codeResult.success) {
+      setError('Please enter a valid 6-digit code.');
+      return;
+    }
+
+    setLoading(true);
+    setError(null);
+
+    try {
+      const e164 = toE164(phoneNumber);
+      const response = await authClient.phoneNumber.verify({
+        phoneNumber: e164,
+        code: otpCode,
+      });
+
+      if (response.error) {
+        setError(response.error.message || 'Invalid code. Please try again.');
+        return;
+      }
+
+      // Check if user needs onboarding
+      const session = await authClient.getSession();
+      if (session.data?.user && !(session.data.user as Record<string, unknown>).onboardingComplete) {
+        router.push('/onboarding');
+      } else {
+        router.push('/');
+      }
+    } catch {
+      setError('Verification failed. Please try again.');
+    } finally {
+      setLoading(false);
+    }
+  }
+
+  async function handleSocialSignIn(provider: 'google' | 'apple') {
+    setLoading(true);
+    setError(null);
+
+    try {
+      await authClient.signIn.social({
+        provider,
+        callbackURL: '/onboarding',
+      });
+    } catch {
+      setError(`Failed to sign in with ${provider === 'google' ? 'Google' : 'Apple'}. Please try again.`);
+      setLoading(false);
+    }
+  }
 
   return (
     <div className="flex min-h-[100dvh] flex-col items-center justify-center bg-[var(--color-bg)] relative overflow-hidden px-6">
@@ -33,7 +140,7 @@ export default function LoginPage() {
       <div className="absolute bottom-[-10%] left-[-20%] h-[400px] w-[400px] rounded-full bg-[var(--color-accent)] opacity-[0.05] blur-[80px]" />
 
       <div className="relative z-10 w-full max-w-sm">
-        {/* ── Branding ─────────────────────────────────────────────────── */}
+        {/* -- Branding -- */}
         <div className="flex flex-col items-center">
           {/* Logo mark */}
           <div
@@ -64,60 +171,187 @@ export default function LoginPage() {
             <span className="h-[3px] w-[3px] rounded-full bg-[var(--color-primary)]" />
           </div>
 
-          <p
-            className="animate-fade-up mt-6 max-w-[280px] text-center text-[15px] leading-relaxed text-[var(--color-text-muted)]"
-            style={{ '--stagger': 4 } as React.CSSProperties}
-          >
-            Discover free local events, connect with friends, and find your next favorite thing to do in SoCal.
-          </p>
+          {step === 'methods' && (
+            <p
+              className="animate-fade-up mt-6 max-w-[280px] text-center text-[15px] leading-relaxed text-[var(--color-text-muted)]"
+              style={{ '--stagger': 4 } as React.CSSProperties}
+            >
+              Discover free local events, connect with friends, and find your next favorite thing to do in SoCal.
+            </p>
+          )}
         </div>
 
-        {/* ── Auth Buttons ─────────────────────────────────────────────── */}
-        <div className="mt-10 flex flex-col gap-3">
-          <button
-            onClick={() => router.push('/onboarding')}
-            className="animate-fade-up btn-press flex h-14 w-full items-center justify-center gap-3 rounded-[var(--radius-button)] bg-[var(--color-secondary)] font-semibold text-white"
-            style={{ '--stagger': 5, boxShadow: '0 4px 16px rgba(28, 30, 42, 0.2)' } as React.CSSProperties}
-          >
-            <Phone className="h-5 w-5" strokeWidth={1.8} />
-            Continue with Phone
-          </button>
+        {/* -- Error Display -- */}
+        {error && (
+          <div className="mt-4 rounded-[var(--radius-card)] border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700">
+            {error}
+          </div>
+        )}
 
-          <button
-            onClick={() => router.push('/onboarding')}
-            className="animate-fade-up btn-press flex h-14 w-full items-center justify-center gap-3 rounded-[var(--radius-button)] bg-black font-semibold text-white"
-            style={{ '--stagger': 6, boxShadow: '0 4px 16px rgba(0, 0, 0, 0.15)' } as React.CSSProperties}
-          >
-            <AppleIcon />
-            Continue with Apple
-          </button>
+        {/* -- Auth Methods -- */}
+        {step === 'methods' && (
+          <div className="mt-10 flex flex-col gap-3">
+            <button
+              onClick={() => { setStep('phone-input'); setError(null); }}
+              disabled={loading}
+              className="animate-fade-up btn-press flex h-14 w-full items-center justify-center gap-3 rounded-[var(--radius-button)] bg-[var(--color-secondary)] font-semibold text-white"
+              style={{ '--stagger': 5, boxShadow: '0 4px 16px rgba(28, 30, 42, 0.2)' } as React.CSSProperties}
+            >
+              <Phone className="h-5 w-5" strokeWidth={1.8} />
+              Continue with Phone
+            </button>
 
-          <button
-            onClick={() => router.push('/onboarding')}
-            className="animate-fade-up btn-press flex h-14 w-full items-center justify-center gap-3 rounded-[var(--radius-button)] border border-[var(--color-border)] bg-[var(--color-card)] font-semibold text-[var(--color-text-primary)]"
-            style={{ '--stagger': 7, boxShadow: 'var(--shadow-xs)' } as React.CSSProperties}
-          >
-            <GoogleIcon />
-            Continue with Google
-          </button>
-        </div>
+            <button
+              onClick={() => handleSocialSignIn('apple')}
+              disabled={loading}
+              className="animate-fade-up btn-press flex h-14 w-full items-center justify-center gap-3 rounded-[var(--radius-button)] bg-black font-semibold text-white"
+              style={{ '--stagger': 6, boxShadow: '0 4px 16px rgba(0, 0, 0, 0.15)' } as React.CSSProperties}
+            >
+              {loading ? <Loader2 className="h-5 w-5 animate-spin" /> : <AppleIcon />}
+              Continue with Apple
+            </button>
+
+            <button
+              onClick={() => handleSocialSignIn('google')}
+              disabled={loading}
+              className="animate-fade-up btn-press flex h-14 w-full items-center justify-center gap-3 rounded-[var(--radius-button)] border border-[var(--color-border)] bg-[var(--color-card)] font-semibold text-[var(--color-text-primary)]"
+              style={{ '--stagger': 7, boxShadow: 'var(--shadow-xs)' } as React.CSSProperties}
+            >
+              {loading ? <Loader2 className="h-5 w-5 animate-spin" /> : <GoogleIcon />}
+              Continue with Google
+            </button>
+          </div>
+        )}
+
+        {/* -- Phone Input Step -- */}
+        {step === 'phone-input' && (
+          <div className="mt-8 flex flex-col gap-4" style={{ animation: 'fadeIn 0.3s ease-out' }}>
+            <button
+              onClick={() => { setStep('methods'); setError(null); setPhoneNumber(''); }}
+              className="flex items-center gap-1 text-sm font-medium text-[var(--color-text-secondary)] hover:text-[var(--color-text-primary)] transition-colors"
+            >
+              <ArrowLeft className="h-4 w-4" />
+              Back
+            </button>
+
+            <p className="text-sm text-[var(--color-text-secondary)]">
+              Enter your phone number and we&apos;ll text you a code.
+            </p>
+
+            <div className="flex items-center gap-2">
+              <span className="flex h-14 items-center rounded-[var(--radius-button)] border border-[var(--color-border)] bg-[var(--color-card)] px-4 text-[15px] font-medium text-[var(--color-text-secondary)]">
+                +1
+              </span>
+              <input
+                type="tel"
+                inputMode="numeric"
+                autoFocus
+                placeholder="(555) 123-4567"
+                value={formatPhoneDisplay(phoneNumber)}
+                onChange={(e) => handlePhoneInputChange(e.target.value)}
+                className="h-14 flex-1 rounded-[var(--radius-button)] border border-[var(--color-border)] bg-[var(--color-card)] px-4 text-[15px] font-medium text-[var(--color-text-primary)] placeholder:text-[var(--color-text-muted)] outline-none focus:border-[var(--color-primary)] transition-colors"
+              />
+            </div>
+
+            <button
+              onClick={handleSendOtp}
+              disabled={phoneNumber.length !== 10 || loading}
+              className={`btn-press flex h-14 w-full items-center justify-center gap-2 rounded-[var(--radius-button)] font-bold text-white transition-all ${
+                phoneNumber.length === 10 && !loading
+                  ? 'bg-[var(--color-primary)]'
+                  : 'bg-[var(--color-text-muted)] cursor-not-allowed'
+              }`}
+              style={phoneNumber.length === 10 && !loading ? { boxShadow: 'var(--shadow-button)' } : undefined}
+            >
+              {loading ? (
+                <Loader2 className="h-5 w-5 animate-spin" />
+              ) : (
+                'Send Code'
+              )}
+            </button>
+          </div>
+        )}
+
+        {/* -- OTP Verify Step -- */}
+        {step === 'otp-verify' && (
+          <div className="mt-8 flex flex-col gap-4" style={{ animation: 'fadeIn 0.3s ease-out' }}>
+            <button
+              onClick={() => { setStep('phone-input'); setError(null); setOtpCode(''); }}
+              className="flex items-center gap-1 text-sm font-medium text-[var(--color-text-secondary)] hover:text-[var(--color-text-primary)] transition-colors"
+            >
+              <ArrowLeft className="h-4 w-4" />
+              Back
+            </button>
+
+            <p className="text-sm text-[var(--color-text-secondary)]">
+              Enter the 6-digit code sent to{' '}
+              <span className="font-semibold text-[var(--color-text-primary)]">
+                +1 {formatPhoneDisplay(phoneNumber)}
+              </span>
+            </p>
+
+            <input
+              type="text"
+              inputMode="numeric"
+              autoFocus
+              maxLength={6}
+              placeholder="000000"
+              value={otpCode}
+              onChange={(e) => {
+                const digits = e.target.value.replace(/\D/g, '').slice(0, 6);
+                setOtpCode(digits);
+                setError(null);
+              }}
+              className="h-14 w-full rounded-[var(--radius-button)] border border-[var(--color-border)] bg-[var(--color-card)] px-4 text-center text-2xl font-bold tracking-[0.3em] text-[var(--color-text-primary)] placeholder:text-[var(--color-text-muted)] outline-none focus:border-[var(--color-primary)] transition-colors"
+            />
+
+            <button
+              onClick={handleVerifyOtp}
+              disabled={otpCode.length !== 6 || loading}
+              className={`btn-press flex h-14 w-full items-center justify-center gap-2 rounded-[var(--radius-button)] font-bold text-white transition-all ${
+                otpCode.length === 6 && !loading
+                  ? 'bg-[var(--color-primary)]'
+                  : 'bg-[var(--color-text-muted)] cursor-not-allowed'
+              }`}
+              style={otpCode.length === 6 && !loading ? { boxShadow: 'var(--shadow-button)' } : undefined}
+            >
+              {loading ? (
+                <Loader2 className="h-5 w-5 animate-spin" />
+              ) : (
+                'Verify'
+              )}
+            </button>
+
+            <button
+              onClick={handleSendOtp}
+              disabled={loading}
+              className="text-sm font-semibold text-[var(--color-primary)] underline underline-offset-2 disabled:opacity-50"
+            >
+              Resend code
+            </button>
+          </div>
+        )}
 
         {/* Demo user */}
-        <div className="animate-fade-up mt-6 text-center" style={{ '--stagger': 8 } as React.CSSProperties}>
-          <Link href="/" className="text-sm font-semibold text-[var(--color-primary)] underline underline-offset-2">
-            Try as demo user
-          </Link>
-          <span className="ml-2 rounded-full bg-[var(--color-primary)] bg-opacity-10 px-2.5 py-0.5 text-[10px] font-bold tracking-wider text-[var(--color-primary)] uppercase">
-            Beta
-          </span>
-        </div>
+        {step === 'methods' && (
+          <>
+            <div className="animate-fade-up mt-6 text-center" style={{ '--stagger': 8 } as React.CSSProperties}>
+              <Link href="/" className="text-sm font-semibold text-[var(--color-primary)] underline underline-offset-2">
+                Try as demo user
+              </Link>
+              <span className="ml-2 rounded-full bg-[var(--color-primary)] bg-opacity-10 px-2.5 py-0.5 text-[10px] font-bold tracking-wider text-[var(--color-primary)] uppercase">
+                Beta
+              </span>
+            </div>
 
-        {/* Terms */}
-        <p className="mt-6 text-center text-xs leading-relaxed text-[var(--color-text-muted)]">
-          By continuing, you agree to our{' '}
-          <span className="underline underline-offset-2">Terms of Service</span> and{' '}
-          <span className="underline underline-offset-2">Privacy Policy</span>
-        </p>
+            {/* Terms */}
+            <p className="mt-6 text-center text-xs leading-relaxed text-[var(--color-text-muted)]">
+              By continuing, you agree to our{' '}
+              <span className="underline underline-offset-2">Terms of Service</span> and{' '}
+              <span className="underline underline-offset-2">Privacy Policy</span>
+            </p>
+          </>
+        )}
       </div>
     </div>
   );
