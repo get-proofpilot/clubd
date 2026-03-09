@@ -1,3 +1,6 @@
+import dotenv from "dotenv";
+dotenv.config({ path: ".env.local" });
+
 import crypto from "node:crypto";
 import { db } from "./index";
 import { users } from "./schema";

@@ -6,7 +6,6 @@ import {
   index,
   pgEnum,
 } from "drizzle-orm/pg-core";
-import { geometry } from "drizzle-orm/pg-core";
 
 export const eventCategoryEnum = pgEnum("event_category", [
   "fitness",
@@ -33,7 +32,8 @@ export const events = pgTable(
     title: text("title").notNull(),
     description: text("description"),
     category: eventCategoryEnum("category").notNull(),
-    location: geometry("location", { type: "point", mode: "xy", srid: 4326 }),
+    locationLat: text("location_lat"),
+    locationLng: text("location_lng"),
     address: text("address"),
     startsAt: timestamp("starts_at", { withTimezone: true }).notNull(),
     endsAt: timestamp("ends_at", { withTimezone: true }),
@@ -45,7 +45,6 @@ export const events = pgTable(
     updatedAt: timestamp("updated_at").defaultNow().notNull(),
   },
   (t) => [
-    index("events_location_idx").using("gist", t.location),
     index("events_starts_at_idx").on(t.startsAt),
     index("events_category_idx").on(t.category),
     index("events_host_id_idx").on(t.hostId),

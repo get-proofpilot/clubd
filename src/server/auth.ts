@@ -5,10 +5,14 @@ import { drizzleAdapter } from "better-auth/adapters/drizzle";
 import twilio from "twilio";
 import { db } from "./db";
 
-const twilioClient = twilio(
-  process.env.TWILIO_ACCOUNT_SID,
-  process.env.TWILIO_AUTH_TOKEN,
-);
+function getTwilioClient() {
+  const sid = process.env.TWILIO_ACCOUNT_SID;
+  const token = process.env.TWILIO_AUTH_TOKEN;
+  if (!sid || !token || !sid.startsWith("AC")) {
+    throw new Error("Twilio credentials not configured. Set TWILIO_ACCOUNT_SID and TWILIO_AUTH_TOKEN.");
+  }
+  return twilio(sid, token);
+}
 
 export const auth = betterAuth({
   baseURL: process.env.BETTER_AUTH_URL || "http://localhost:3000",
@@ -38,7 +42,7 @@ export const auth = betterAuth({
       sendOTP: async ({ phoneNumber: phone }) => {
         // IGNORE Better Auth's generated code.
         // Delegate OTP generation + delivery to Twilio Verify.
-        await twilioClient.verify.v2
+        await getTwilioClient().verify.v2
           .services(process.env.TWILIO_VERIFY_SERVICE_SID!)
           .verifications.create({
             to: phone,
@@ -47,7 +51,8 @@ export const auth = betterAuth({
       },
       verifyOTP: async ({ phoneNumber: phone, code }) => {
         // Delegate verification to Twilio Verify.
-        const check = await twilioClient.verify.v2
+        const client = getTwilioClient();
+        const check = await client.verify.v2
           .services(process.env.TWILIO_VERIFY_SERVICE_SID!)
           .verificationChecks.create({
             to: phone,

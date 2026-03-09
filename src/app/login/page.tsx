@@ -1,8 +1,7 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useRef, useEffect, useCallback } from 'react';
 import { useRouter } from 'next/navigation';
-import Link from 'next/link';
 import { Phone, ArrowLeft, Loader2 } from 'lucide-react';
 import { authClient } from '@/lib/auth-client';
 import { phoneNumberSchema, otpCodeSchema } from '@/lib/validators/auth';
@@ -32,9 +31,20 @@ export default function LoginPage() {
   const router = useRouter();
   const [step, setStep] = useState<LoginStep>('methods');
   const [phoneNumber, setPhoneNumber] = useState('');
-  const [otpCode, setOtpCode] = useState('');
+  const [otpDigits, setOtpDigits] = useState<string[]>(['', '', '', '', '', '']);
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
+  const [demoLoading, setDemoLoading] = useState(false);
+  const [resendTimer, setResendTimer] = useState(0);
+  const otpRefs = useRef<(HTMLInputElement | null)[]>([]);
+  const showDemoLogin = process.env.NEXT_PUBLIC_DEMO_LOGIN_ENABLED === 'true';
+
+  // Resend countdown timer
+  useEffect(() => {
+    if (resendTimer <= 0) return;
+    const interval = setInterval(() => setResendTimer((t) => t - 1), 1000);
+    return () => clearInterval(interval);
+  }, [resendTimer]);
 
   function formatPhoneDisplay(value: string): string {
     const digits = value.replace(/\D/g, '');
@@ -75,6 +85,8 @@ export default function LoginPage() {
       }
 
       setStep('otp-verify');
+      setResendTimer(60);
+      setOtpDigits(['', '', '', '', '', '']);
     } catch {
       setError('Something went wrong. Please try again.');
     } finally {
@@ -82,8 +94,8 @@ export default function LoginPage() {
     }
   }
 
-  async function handleVerifyOtp() {
-    const codeResult = otpCodeSchema.safeParse(otpCode);
+  const submitOtp = useCallback(async (code: string) => {
+    const codeResult = otpCodeSchema.safeParse(code);
     if (!codeResult.success) {
       setError('Please enter a valid 6-digit code.');
       return;
@@ -96,11 +108,13 @@ export default function LoginPage() {
       const e164 = toE164(phoneNumber);
       const response = await authClient.phoneNumber.verify({
         phoneNumber: e164,
-        code: otpCode,
+        code,
       });
 
       if (response.error) {
         setError(response.error.message || 'Invalid code. Please try again.');
+        setOtpDigits(['', '', '', '', '', '']);
+        otpRefs.current[0]?.focus();
         return;
       }
 
@@ -115,6 +129,67 @@ export default function LoginPage() {
       setError('Verification failed. Please try again.');
     } finally {
       setLoading(false);
+    }
+  }, [phoneNumber, router]);
+
+  function handleOtpDigitChange(index: number, value: string) {
+    const digit = value.replace(/\D/g, '').slice(-1);
+    const newDigits = [...otpDigits];
+    newDigits[index] = digit;
+    setOtpDigits(newDigits);
+    setError(null);
+
+    if (digit && index < 5) {
+      otpRefs.current[index + 1]?.focus();
+    }
+
+    // Auto-submit when all 6 digits filled
+    const fullCode = newDigits.join('');
+    if (fullCode.length === 6) {
+      submitOtp(fullCode);
+    }
+  }
+
+  function handleOtpKeyDown(index: number, e: React.KeyboardEvent<HTMLInputElement>) {
+    if (e.key === 'Backspace' && !otpDigits[index] && index > 0) {
+      const newDigits = [...otpDigits];
+      newDigits[index - 1] = '';
+      setOtpDigits(newDigits);
+      otpRefs.current[index - 1]?.focus();
+    }
+  }
+
+  function handleOtpPaste(e: React.ClipboardEvent) {
+    e.preventDefault();
+    const pasted = e.clipboardData.getData('text').replace(/\D/g, '').slice(0, 6);
+    if (!pasted) return;
+    const newDigits = [...otpDigits];
+    for (let i = 0; i < 6; i++) {
+      newDigits[i] = pasted[i] || '';
+    }
+    setOtpDigits(newDigits);
+    if (pasted.length === 6) {
+      submitOtp(pasted);
+    } else {
+      otpRefs.current[pasted.length]?.focus();
+    }
+  }
+
+  async function handleDemoLogin() {
+    setDemoLoading(true);
+    setError(null);
+    try {
+      const res = await fetch('/api/auth/demo-login', { method: 'POST' });
+      if (!res.ok) {
+        const data = await res.json();
+        setError(data.error || 'Demo login failed.');
+        return;
+      }
+      router.push('/');
+    } catch {
+      setError('Demo login failed. Please try again.');
+    } finally {
+      setDemoLoading(false);
     }
   }
 
@@ -276,7 +351,7 @@ export default function LoginPage() {
         {step === 'otp-verify' && (
           <div className="mt-8 flex flex-col gap-4" style={{ animation: 'fadeIn 0.3s ease-out' }}>
             <button
-              onClick={() => { setStep('phone-input'); setError(null); setOtpCode(''); }}
+              onClick={() => { setStep('phone-input'); setError(null); setOtpDigits(['', '', '', '', '', '']); }}
               className="flex items-center gap-1 text-sm font-medium text-[var(--color-text-secondary)] hover:text-[var(--color-text-primary)] transition-colors"
             >
               <ArrowLeft className="h-4 w-4" />
@@ -290,67 +365,65 @@ export default function LoginPage() {
               </span>
             </p>
 
-            <input
-              type="text"
-              inputMode="numeric"
-              autoFocus
-              maxLength={6}
-              placeholder="000000"
-              value={otpCode}
-              onChange={(e) => {
-                const digits = e.target.value.replace(/\D/g, '').slice(0, 6);
-                setOtpCode(digits);
-                setError(null);
-              }}
-              className="h-14 w-full rounded-[var(--radius-button)] border border-[var(--color-border)] bg-[var(--color-card)] px-4 text-center text-2xl font-bold tracking-[0.3em] text-[var(--color-text-primary)] placeholder:text-[var(--color-text-muted)] outline-none focus:border-[var(--color-primary)] transition-colors"
-            />
+            {/* 6 individual digit boxes */}
+            <div className="flex justify-between gap-2" onPaste={handleOtpPaste}>
+              {otpDigits.map((digit, i) => (
+                <input
+                  key={i}
+                  ref={(el) => { otpRefs.current[i] = el; }}
+                  type="text"
+                  inputMode="numeric"
+                  autoFocus={i === 0}
+                  maxLength={1}
+                  value={digit}
+                  onChange={(e) => handleOtpDigitChange(i, e.target.value)}
+                  onKeyDown={(e) => handleOtpKeyDown(i, e)}
+                  disabled={loading}
+                  className="h-14 w-12 flex-1 rounded-[var(--radius-button)] border border-[var(--color-border)] bg-[var(--color-card)] text-center text-2xl font-bold text-[var(--color-text-primary)] outline-none focus:border-[var(--color-primary)] transition-colors disabled:opacity-50"
+                />
+              ))}
+            </div>
+
+            {loading && (
+              <div className="flex items-center justify-center gap-2 text-sm text-[var(--color-text-secondary)]">
+                <Loader2 className="h-4 w-4 animate-spin" />
+                Verifying...
+              </div>
+            )}
 
             <button
-              onClick={handleVerifyOtp}
-              disabled={otpCode.length !== 6 || loading}
-              className={`btn-press flex h-14 w-full items-center justify-center gap-2 rounded-[var(--radius-button)] font-bold text-white transition-all ${
-                otpCode.length === 6 && !loading
-                  ? 'bg-[var(--color-primary)]'
-                  : 'bg-[var(--color-text-muted)] cursor-not-allowed'
-              }`}
-              style={otpCode.length === 6 && !loading ? { boxShadow: 'var(--shadow-button)' } : undefined}
+              onClick={() => { handleSendOtp(); setResendTimer(60); }}
+              disabled={loading || resendTimer > 0}
+              className="text-sm font-semibold text-[var(--color-primary)] underline underline-offset-2 disabled:opacity-50 disabled:no-underline"
             >
-              {loading ? (
-                <Loader2 className="h-5 w-5 animate-spin" />
-              ) : (
-                'Verify'
-              )}
-            </button>
-
-            <button
-              onClick={handleSendOtp}
-              disabled={loading}
-              className="text-sm font-semibold text-[var(--color-primary)] underline underline-offset-2 disabled:opacity-50"
-            >
-              Resend code
+              {resendTimer > 0 ? `Resend code in ${resendTimer}s` : 'Resend code'}
             </button>
           </div>
         )}
 
         {/* Demo user */}
-        {step === 'methods' && (
-          <>
-            <div className="animate-fade-up mt-6 text-center" style={{ '--stagger': 8 } as React.CSSProperties}>
-              <Link href="/" className="text-sm font-semibold text-[var(--color-primary)] underline underline-offset-2">
-                Try as demo user
-              </Link>
-              <span className="ml-2 rounded-full bg-[var(--color-primary)] bg-opacity-10 px-2.5 py-0.5 text-[10px] font-bold tracking-wider text-[var(--color-primary)] uppercase">
-                Beta
-              </span>
-            </div>
+        {step === 'methods' && showDemoLogin && (
+          <div className="animate-fade-up mt-6 text-center" style={{ '--stagger': 8 } as React.CSSProperties}>
+            <button
+              onClick={handleDemoLogin}
+              disabled={demoLoading}
+              className="text-sm font-semibold text-[var(--color-primary)] underline underline-offset-2 disabled:opacity-50"
+            >
+              {demoLoading ? 'Signing in...' : 'Try as demo user'}
+            </button>
+            <span className="ml-2 rounded-full bg-[var(--color-primary)] bg-opacity-10 px-2.5 py-0.5 text-[10px] font-bold tracking-wider text-[var(--color-primary)] uppercase">
+              Beta
+            </span>
+          </div>
+        )}
 
-            {/* Terms */}
-            <p className="mt-6 text-center text-xs leading-relaxed text-[var(--color-text-muted)]">
-              By continuing, you agree to our{' '}
-              <span className="underline underline-offset-2">Terms of Service</span> and{' '}
-              <span className="underline underline-offset-2">Privacy Policy</span>
-            </p>
-          </>
+        {/* Terms */}
+        {step === 'methods' && (
+          <p className="mt-6 text-center text-xs leading-relaxed text-[var(--color-text-muted)]">
+            By continuing, you agree to our{' '}
+            <span className="underline underline-offset-2">Terms of Service</span> and{' '}
+            <span className="underline underline-offset-2">Privacy Policy</span>
+          </p>
         )}
       </div>
     </div>
