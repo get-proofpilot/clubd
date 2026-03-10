@@ -1,12 +1,12 @@
 # Project State
 
 ## Current Position
-- **Phase:** 01 - Foundation and Auth
-- **Plan:** 02 (checkpoint:human-verify reached at Task 3)
-- **Status:** checkpoint-paused
+- **Phase:** 02 - Events and Host Tools
+- **Plan:** 03 (next plan)
+- **Status:** in-progress
 
 ## Progress
-[==--------] 1/6 phases | Plan 2 of 3 in phase 01 (2/3 tasks complete, checkpoint pending)
+[====------] 2/6 phases | Plan 2 of 2 complete in phase 02
 
 ## Decisions
 - Better Auth with Twilio Verify delegation for phone OTP (01-01)
@@ -17,6 +17,10 @@
 - Social sign-in callbackURL set to /onboarding for new users (01-02)
 - Interest IDs standardized to underscore format (food_drink) matching DB enum (01-02)
 - Onboarding persistence via tRPC protectedProcedure mutation (01-02)
+- Category values use DB enum format (food_drink) directly instead of TypeScript EventCategory enum (02-02)
+- Co-host input removed from create form; co-hosts added post-creation via dashboard (02-02)
+- Auth guard uses client-side redirect pattern consistent with 01-02 approach (02-02)
+- Dashboard invalidates myEvents query on publish/cancel for instant UI refresh (02-02)
 
 ## Blockers
 None
@@ -27,7 +31,8 @@ None
 |-----------|----------|-------|-------|
 | 01-01 | ~10min | 2 | 26 |
 | 01-02 | ~10min | 2/3 | 4 |
+| 02-02 | ~4min | 3/3 | 5 |
 
 ## Last Session
-- **Timestamp:** 2026-03-09T17:36:00Z
-- **Stopped At:** 01-02-PLAN.md Task 3 (checkpoint:human-verify)
+- **Timestamp:** 2026-03-10T03:28:00Z
+- **Stopped At:** Completed 02-02-PLAN.md
