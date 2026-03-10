@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { Suspense, useState, useEffect } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import Link from 'next/link';
 import {
@@ -16,7 +16,7 @@ import { authClient } from '@/lib/auth-client';
 import EventList from '@/components/host-dashboard/EventList';
 import StripeConnectCard from '@/components/host-dashboard/StripeConnectCard';
 
-export default function HostDashboardPage() {
+function HostDashboardContent() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const { data: session, isPending: sessionLoading } = authClient.useSession();
@@ -169,5 +169,19 @@ export default function HostDashboardPage() {
         </div>
       </main>
     </div>
+  );
+}
+
+export default function HostDashboardPage() {
+  return (
+    <Suspense
+      fallback={
+        <div className="flex min-h-screen items-center justify-center bg-[var(--color-bg)]">
+          <Loader2 className="h-8 w-8 animate-spin text-[var(--color-primary)]" />
+        </div>
+      }
+    >
+      <HostDashboardContent />
+    </Suspense>
   );
 }
