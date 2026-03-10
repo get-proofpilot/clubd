@@ -24,6 +24,12 @@ export const eventStatusEnum = pgEnum("event_status", [
   "cancelled",
 ]);
 
+export const eventPricingTypeEnum = pgEnum("event_pricing_type", [
+  "free",
+  "free_with_upsell",
+  "paid",
+]);
+
 export const events = pgTable(
   "events",
   {
@@ -41,6 +47,11 @@ export const events = pgTable(
     rsvpCount: integer("rsvp_count").default(0),
     imageUrl: text("image_url"),
     status: eventStatusEnum("status").default("draft"),
+    pricingType: eventPricingTypeEnum("pricing_type").default("free").notNull(),
+    serviceFeePercent: integer("service_fee_percent").default(0),
+    templateEventId: text("template_event_id"),
+    locationName: text("location_name"),
+    locationPlaceId: text("location_place_id"),
     createdAt: timestamp("created_at").defaultNow().notNull(),
     updatedAt: timestamp("updated_at").defaultNow().notNull(),
   },

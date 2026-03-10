@@ -17,6 +17,8 @@ export const users = pgTable("users", {
   locationLng: text("location_lng"),
   locationLabel: text("location_label"),
   interests: text("interests").array(),
+  stripeAccountId: text("stripe_account_id"),
+  stripeAccountEnabled: boolean("stripe_account_enabled").default(false),
   onboardingComplete: boolean("onboarding_complete").default(false),
   createdAt: timestamp("created_at").defaultNow().notNull(),
   updatedAt: timestamp("updated_at").defaultNow().notNull(),
