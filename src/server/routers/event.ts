@@ -24,7 +24,20 @@ export const eventRouter = router({
       });
       if (!event) return null;
 
-      const [tiers, images, coHostRows, announcements] = await Promise.all([
+      // Fetch host user data for the host info card
+      const hostUser = await db.query.users.findFirst({
+        where: eq(users.id, event.hostId),
+      });
+
+      // Count total events by this host
+      const [hostEventCount] = await db
+        .select({ count: sql<number>`count(*)` })
+        .from(events)
+        .where(
+          and(eq(events.hostId, event.hostId), eq(events.status, "published")),
+        );
+
+      const [tiers, images, coHostRows, announcementRows] = await Promise.all([
         db.query.eventTickets.findMany({
           where: eq(eventTickets.eventId, input.id),
           orderBy: [eventTickets.sortOrder],
@@ -44,11 +57,20 @@ export const eventRouter = router({
           .from(eventCoHosts)
           .innerJoin(users, eq(eventCoHosts.userId, users.id))
           .where(eq(eventCoHosts.eventId, input.id)),
-        db.query.eventAnnouncements.findMany({
-          where: eq(eventAnnouncements.eventId, input.id),
-          orderBy: [desc(eventAnnouncements.createdAt)],
-          limit: 5,
-        }),
+        db
+          .select({
+            id: eventAnnouncements.id,
+            message: eventAnnouncements.message,
+            createdAt: eventAnnouncements.createdAt,
+            authorName: users.name,
+            authorDisplayName: users.displayName,
+            authorImage: users.image,
+          })
+          .from(eventAnnouncements)
+          .innerJoin(users, eq(eventAnnouncements.authorId, users.id))
+          .where(eq(eventAnnouncements.eventId, input.id))
+          .orderBy(desc(eventAnnouncements.createdAt))
+          .limit(5),
       ]);
 
       let userRsvp = null;
@@ -66,8 +88,18 @@ export const eventRouter = router({
         ticketTiers: tiers,
         images,
         coHosts: coHostRows,
-        announcements,
+        announcements: announcementRows,
         userRsvp,
+        host: hostUser
+          ? {
+              id: hostUser.id,
+              name: hostUser.name,
+              displayName: hostUser.displayName,
+              image: hostUser.image,
+              bio: hostUser.bio,
+              eventCount: Number(hostEventCount?.count ?? 0),
+            }
+          : null,
       };
     }),
 
@@ -115,14 +147,23 @@ export const eventRouter = router({
       }),
     )
     .query(async ({ input }) => {
-      const rows = await db.query.rsvps.findMany({
-        where: and(
-          eq(rsvps.eventId, input.eventId),
-          eq(rsvps.status, "going"),
-        ),
-        limit: input.limit,
-        offset: input.offset,
-      });
+      const rows = await db
+        .select({
+          userId: rsvps.userId,
+          userName: users.name,
+          userDisplayName: users.displayName,
+          userImage: users.image,
+        })
+        .from(rsvps)
+        .innerJoin(users, eq(rsvps.userId, users.id))
+        .where(
+          and(
+            eq(rsvps.eventId, input.eventId),
+            eq(rsvps.status, "going"),
+          ),
+        )
+        .limit(input.limit)
+        .offset(input.offset);
 
       const total = await db
         .select({ count: sql<number>`count(*)` })
