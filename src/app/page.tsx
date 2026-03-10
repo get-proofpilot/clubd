@@ -823,7 +823,7 @@ export default function LandingPage() {
               <p className="text-xs font-bold uppercase tracking-widest text-white/30">For hosts</p>
               <div className="mt-3 flex flex-col gap-2 text-sm text-white/40">
                 <Link href="/host/create" className="hover:text-white/70 transition-colors">Create an event</Link>
-                <Link href="/host/create" className="hover:text-white/70 transition-colors">Host dashboard</Link>
+                <Link href="/host/dashboard" className="hover:text-white/70 transition-colors">Host dashboard</Link>
                 <Link href="/host/create" className="hover:text-white/70 transition-colors">Grow your community</Link>
               </div>
             </div>

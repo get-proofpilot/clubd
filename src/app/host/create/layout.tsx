@@ -1,12 +1,12 @@
 import type { Metadata } from "next";
 
 export const metadata: Metadata = {
-  title: "Create a Host Profile",
+  title: "Create Event",
   description:
-    "Set up your host profile on Clubd to start creating and promoting free local events.",
+    "Create a new event on Clubd. Set up the details and publish to your community.",
   openGraph: {
-    title: "Create a Host Profile | Clubd",
-    description: "Start hosting free local events on Clubd.",
+    title: "Create Event | Clubd",
+    description: "Create a new local event on Clubd.",
   },
 };
 
