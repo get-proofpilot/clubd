@@ -39,6 +39,7 @@ export const createEventInput = z.object({
   pricingType: z.enum(eventPricingTypeValues).default("free"),
   serviceFeePercent: z.number().int().min(0).max(100).default(7),
   imageKeys: z.array(z.string()).max(5).optional(),
+  communityId: z.string().optional(),
 });
 
 /**

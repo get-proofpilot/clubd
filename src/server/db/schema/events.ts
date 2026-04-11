@@ -49,6 +49,7 @@ export const events = pgTable(
     status: eventStatusEnum("status").default("draft"),
     pricingType: eventPricingTypeEnum("pricing_type").default("free").notNull(),
     serviceFeePercent: integer("service_fee_percent").default(0),
+    communityId: text("community_id"),
     templateEventId: text("template_event_id"),
     locationName: text("location_name"),
     locationPlaceId: text("location_place_id"),

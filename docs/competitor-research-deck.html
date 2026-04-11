@@ -1,0 +1,1455 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Clubd — Competitive Landscape & ICP Analysis</title>
+<link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;500;600;700;800&family=Outfit:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --primary: #E8553A;
+    --primary-light: #F0755E;
+    --primary-dark: #C44530;
+    --secondary: #1C1E2A;
+    --accent: #D4953A;
+    --accent-light: #E5B366;
+    --bg: #F7F4EF;
+    --card: #FFFFFF;
+    --surface: #F2F0EB;
+    --text-primary: #2D2F3A;
+    --text-secondary: #6B6D7B;
+    --text-muted: #9B9DA8;
+    --border: #E8E6E1;
+    --success: #5A9E6F;
+    --fever-brand: #FF5A5F;
+    --sweat-brand: #7C3AED;
+    --partiful-brand: #FF6B35;
+  }
+
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  html, body {
+    width: 100%; height: 100%;
+    overflow: hidden;
+    background: var(--secondary);
+    font-family: 'Outfit', -apple-system, sans-serif;
+    -webkit-font-smoothing: antialiased;
+  }
+
+  .deck { width: 100%; height: 100%; position: relative; }
+
+  .slide {
+    position: absolute;
+    inset: 0;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    padding: 60px 80px;
+    opacity: 0;
+    transform: translateX(40px);
+    transition: opacity 0.5s ease, transform 0.5s ease;
+    pointer-events: none;
+    overflow-y: auto;
+  }
+
+  .slide.active {
+    opacity: 1;
+    transform: translateX(0);
+    pointer-events: auto;
+  }
+
+  .slide.prev { transform: translateX(-40px); }
+
+  /* Backgrounds */
+  .bg-warm { background: var(--bg); }
+  .bg-dark { background: var(--secondary); color: white; }
+  .bg-dark .text-secondary { color: rgba(255,255,255,0.6); }
+  .bg-primary {
+    background: linear-gradient(135deg, var(--primary) 0%, var(--primary-dark) 100%);
+    color: white;
+  }
+  .bg-gradient {
+    background: linear-gradient(135deg, var(--secondary) 0%, #2a2d3d 50%, #1a1c28 100%);
+    color: white;
+  }
+  .bg-accent-gradient {
+    background: linear-gradient(135deg, #2D1B0E 0%, #1C1E2A 40%, #1a1c28 100%);
+    color: white;
+  }
+
+  /* Typography */
+  .font-display { font-family: 'Syne', sans-serif; }
+
+  .slide-number {
+    font-family: 'Syne', sans-serif;
+    font-size: 14px;
+    font-weight: 700;
+    letter-spacing: 3px;
+    text-transform: uppercase;
+    color: var(--primary);
+    margin-bottom: 14px;
+  }
+
+  .bg-dark .slide-number,
+  .bg-primary .slide-number,
+  .bg-gradient .slide-number,
+  .bg-accent-gradient .slide-number {
+    color: var(--accent);
+  }
+
+  h1 {
+    font-family: 'Syne', sans-serif;
+    font-size: 52px;
+    font-weight: 800;
+    line-height: 1.1;
+    letter-spacing: -1.5px;
+    color: var(--text-primary);
+  }
+
+  .bg-dark h1, .bg-primary h1, .bg-gradient h1, .bg-accent-gradient h1 { color: white; }
+
+  h2 {
+    font-family: 'Syne', sans-serif;
+    font-size: 38px;
+    font-weight: 700;
+    line-height: 1.15;
+    letter-spacing: -0.8px;
+    color: var(--text-primary);
+  }
+
+  .bg-dark h2, .bg-primary h2, .bg-gradient h2, .bg-accent-gradient h2 { color: white; }
+
+  h3 {
+    font-family: 'Syne', sans-serif;
+    font-size: 20px;
+    font-weight: 700;
+    color: var(--text-primary);
+  }
+
+  .bg-dark h3, .bg-gradient h3, .bg-accent-gradient h3 { color: white; }
+
+  p, li {
+    font-size: 17px;
+    line-height: 1.6;
+    color: var(--text-secondary);
+  }
+
+  .bg-dark p, .bg-dark li,
+  .bg-gradient p, .bg-gradient li,
+  .bg-accent-gradient p, .bg-accent-gradient li { color: rgba(255,255,255,0.7); }
+  .bg-primary p { color: rgba(255,255,255,0.85); }
+
+  .subtitle {
+    font-size: 20px;
+    line-height: 1.5;
+    margin-top: 14px;
+    max-width: 700px;
+  }
+
+  .text-primary-color { color: var(--primary) !important; }
+  .text-accent { color: var(--accent) !important; }
+  .text-success { color: var(--success) !important; }
+  .font-bold { font-weight: 700; }
+
+  /* Layout */
+  .split {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 50px;
+    align-items: start;
+    flex: 1;
+  }
+
+  .split-60-40 {
+    display: grid;
+    grid-template-columns: 1.4fr 1fr;
+    gap: 50px;
+    align-items: start;
+    flex: 1;
+  }
+
+  .split-40-60 {
+    display: grid;
+    grid-template-columns: 1fr 1.5fr;
+    gap: 50px;
+    align-items: start;
+    flex: 1;
+  }
+
+  .three-col {
+    display: grid;
+    grid-template-columns: 1fr 1fr 1fr;
+    gap: 28px;
+    flex: 1;
+  }
+
+  .four-col {
+    display: grid;
+    grid-template-columns: 1fr 1fr 1fr 1fr;
+    gap: 24px;
+    flex: 1;
+  }
+
+  .two-col {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 28px;
+    flex: 1;
+  }
+
+  .mt-32 { margin-top: 32px; }
+  .mt-24 { margin-top: 24px; }
+  .mt-16 { margin-top: 16px; }
+  .mt-8 { margin-top: 8px; }
+  .mb-16 { margin-bottom: 16px; }
+  .mb-24 { margin-bottom: 24px; }
+  .gap-16 { gap: 16px; }
+
+  /* Cards */
+  .card {
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: 16px;
+    padding: 28px;
+  }
+
+  .card-dark {
+    background: rgba(255,255,255,0.06);
+    border: 1px solid rgba(255,255,255,0.1);
+    border-radius: 16px;
+    padding: 28px;
+  }
+
+  .card-dark-sm {
+    background: rgba(255,255,255,0.06);
+    border: 1px solid rgba(255,255,255,0.1);
+    border-radius: 12px;
+    padding: 22px;
+  }
+
+  .card-accent {
+    border-left: 4px solid var(--primary);
+  }
+
+  .card-fever { border-left: 4px solid var(--fever-brand); }
+  .card-sweat { border-left: 4px solid var(--sweat-brand); }
+  .card-partiful { border-left: 4px solid var(--partiful-brand); }
+  .card-clubd { border-left: 4px solid var(--primary); }
+
+  /* Stats */
+  .stat-number {
+    font-family: 'Syne', sans-serif;
+    font-size: 42px;
+    font-weight: 800;
+    color: var(--primary);
+    line-height: 1;
+  }
+
+  .bg-dark .stat-number,
+  .bg-gradient .stat-number,
+  .bg-accent-gradient .stat-number { color: var(--accent); }
+
+  .stat-label {
+    font-size: 14px;
+    font-weight: 500;
+    color: var(--text-muted);
+    margin-top: 6px;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+  }
+
+  .bg-dark .stat-label,
+  .bg-gradient .stat-label,
+  .bg-accent-gradient .stat-label { color: rgba(255,255,255,0.4); }
+
+  .stat-medium {
+    font-family: 'Syne', sans-serif;
+    font-size: 32px;
+    font-weight: 800;
+    line-height: 1;
+  }
+
+  /* Tags */
+  .tag {
+    display: inline-block;
+    padding: 4px 12px;
+    border-radius: 20px;
+    font-size: 13px;
+    font-weight: 600;
+    letter-spacing: 0.5px;
+  }
+
+  .tag-primary { background: rgba(232,85,58,0.12); color: var(--primary); }
+  .tag-accent { background: rgba(212,149,58,0.15); color: var(--accent); }
+  .tag-success { background: rgba(90,158,111,0.12); color: var(--success); }
+  .tag-fever { background: rgba(255,90,95,0.12); color: var(--fever-brand); }
+  .tag-sweat { background: rgba(124,58,237,0.12); color: var(--sweat-brand); }
+  .tag-dark { background: rgba(255,255,255,0.1); color: rgba(255,255,255,0.7); }
+
+  /* Comparison Table */
+  .comp-table {
+    width: 100%;
+    border-collapse: separate;
+    border-spacing: 0;
+    margin-top: 24px;
+    font-size: 15px;
+  }
+
+  .comp-table th {
+    font-family: 'Syne', sans-serif;
+    font-weight: 700;
+    font-size: 13px;
+    text-transform: uppercase;
+    letter-spacing: 1.5px;
+    padding: 14px 18px;
+    text-align: left;
+    border-bottom: 2px solid rgba(255,255,255,0.15);
+    color: rgba(255,255,255,0.5);
+  }
+
+  .comp-table th.col-clubd {
+    color: var(--accent);
+  }
+
+  .comp-table td {
+    padding: 12px 18px;
+    border-bottom: 1px solid rgba(255,255,255,0.06);
+    color: rgba(255,255,255,0.7);
+    vertical-align: top;
+  }
+
+  .comp-table td:first-child {
+    font-weight: 600;
+    color: rgba(255,255,255,0.9);
+    font-size: 14px;
+  }
+
+  .comp-table td.clubd-col {
+    color: var(--accent);
+    font-weight: 600;
+  }
+
+  .comp-table tr:last-child td { border-bottom: none; }
+
+  /* Check / X icons */
+  .check { color: var(--success); font-weight: 700; }
+  .cross { color: rgba(255,255,255,0.25); }
+  .partial { color: var(--accent-light); }
+
+  /* Feature Matrix */
+  .matrix-table {
+    width: 100%;
+    border-collapse: separate;
+    border-spacing: 0;
+    margin-top: 20px;
+    font-size: 14px;
+  }
+
+  .matrix-table th {
+    font-family: 'Syne', sans-serif;
+    font-weight: 700;
+    font-size: 12px;
+    text-transform: uppercase;
+    letter-spacing: 1.5px;
+    padding: 12px 14px;
+    text-align: center;
+    border-bottom: 2px solid rgba(255,255,255,0.15);
+    color: rgba(255,255,255,0.5);
+  }
+
+  .matrix-table th:first-child { text-align: left; }
+  .matrix-table th.highlight { color: var(--accent); }
+
+  .matrix-table td {
+    padding: 10px 14px;
+    border-bottom: 1px solid rgba(255,255,255,0.06);
+    color: rgba(255,255,255,0.65);
+    text-align: center;
+    font-size: 15px;
+  }
+
+  .matrix-table td:first-child {
+    text-align: left;
+    font-weight: 500;
+    color: rgba(255,255,255,0.85);
+    font-size: 14px;
+  }
+
+  .matrix-table td.highlight-col {
+    background: rgba(212,149,58,0.08);
+  }
+
+  .matrix-table tr:last-child td { border-bottom: none; }
+
+  /* Bullet Lists */
+  .bullet-list {
+    list-style: none;
+    padding: 0;
+  }
+
+  .bullet-list li {
+    position: relative;
+    padding-left: 22px;
+    margin-bottom: 10px;
+    font-size: 16px;
+  }
+
+  .bullet-list li::before {
+    content: '';
+    position: absolute;
+    left: 0;
+    top: 9px;
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    background: var(--primary);
+  }
+
+  .bg-dark .bullet-list li::before,
+  .bg-gradient .bullet-list li::before,
+  .bg-accent-gradient .bullet-list li::before {
+    background: var(--accent);
+  }
+
+  .bullet-list-sm li {
+    font-size: 14px;
+    margin-bottom: 8px;
+    padding-left: 18px;
+  }
+
+  .bullet-list-sm li::before {
+    top: 7px;
+    width: 6px;
+    height: 6px;
+  }
+
+  /* Strength / Weakness bars */
+  .strength-item {
+    margin-bottom: 14px;
+  }
+
+  .strength-label {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 6px;
+    font-size: 14px;
+    font-weight: 500;
+  }
+
+  .strength-bar {
+    height: 6px;
+    border-radius: 3px;
+    background: rgba(255,255,255,0.1);
+    overflow: hidden;
+  }
+
+  .strength-fill {
+    height: 100%;
+    border-radius: 3px;
+    transition: width 0.8s ease;
+  }
+
+  .fill-green { background: var(--success); }
+  .fill-amber { background: var(--accent); }
+  .fill-red { background: var(--primary); }
+  .fill-purple { background: var(--sweat-brand); }
+
+  /* Persona Cards */
+  .persona-card {
+    background: rgba(255,255,255,0.05);
+    border: 1px solid rgba(255,255,255,0.1);
+    border-radius: 14px;
+    padding: 24px;
+    height: 100%;
+  }
+
+  .persona-emoji {
+    font-size: 36px;
+    margin-bottom: 12px;
+  }
+
+  .persona-name {
+    font-family: 'Syne', sans-serif;
+    font-size: 17px;
+    font-weight: 700;
+    color: white;
+    margin-bottom: 4px;
+  }
+
+  .persona-age {
+    font-size: 13px;
+    color: var(--accent);
+    font-weight: 600;
+    margin-bottom: 10px;
+  }
+
+  .persona-quote {
+    font-size: 14px;
+    font-style: italic;
+    color: rgba(255,255,255,0.5);
+    margin-bottom: 12px;
+    line-height: 1.5;
+  }
+
+  .persona-detail {
+    font-size: 13px;
+    color: rgba(255,255,255,0.6);
+    line-height: 1.5;
+  }
+
+  /* Lesson cards */
+  .lesson-card {
+    background: rgba(255,255,255,0.05);
+    border: 1px solid rgba(255,255,255,0.1);
+    border-radius: 14px;
+    padding: 24px;
+  }
+
+  .lesson-source {
+    font-size: 12px;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 1.5px;
+    margin-bottom: 10px;
+  }
+
+  .lesson-title {
+    font-family: 'Syne', sans-serif;
+    font-size: 16px;
+    font-weight: 700;
+    color: white;
+    margin-bottom: 8px;
+    line-height: 1.3;
+  }
+
+  .lesson-text {
+    font-size: 14px;
+    color: rgba(255,255,255,0.55);
+    line-height: 1.5;
+  }
+
+  /* Divider */
+  .divider {
+    width: 60px;
+    height: 4px;
+    border-radius: 2px;
+    background: var(--primary);
+    margin: 20px 0;
+  }
+
+  .bg-dark .divider,
+  .bg-gradient .divider,
+  .bg-accent-gradient .divider { background: var(--accent); }
+
+  /* Navigation */
+  .nav-bar {
+    position: fixed;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    height: 56px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 0 32px;
+    background: rgba(28,30,42,0.92);
+    backdrop-filter: blur(20px);
+    border-top: 1px solid rgba(255,255,255,0.06);
+    z-index: 100;
+  }
+
+  .nav-brand {
+    font-family: 'Syne', sans-serif;
+    font-size: 16px;
+    font-weight: 800;
+    color: var(--primary);
+    letter-spacing: -0.5px;
+  }
+
+  .nav-dots {
+    display: flex;
+    gap: 8px;
+    align-items: center;
+  }
+
+  .nav-dot {
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    background: rgba(255,255,255,0.15);
+    cursor: pointer;
+    transition: all 0.3s ease;
+  }
+
+  .nav-dot.active {
+    background: var(--primary);
+    width: 24px;
+    border-radius: 4px;
+  }
+
+  .nav-dot:hover { background: rgba(255,255,255,0.3); }
+  .nav-dot.active:hover { background: var(--primary); }
+
+  .nav-controls {
+    display: flex;
+    gap: 10px;
+    align-items: center;
+  }
+
+  .nav-btn {
+    width: 36px;
+    height: 36px;
+    border-radius: 8px;
+    border: 1px solid rgba(255,255,255,0.12);
+    background: transparent;
+    color: rgba(255,255,255,0.5);
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 16px;
+    transition: all 0.2s;
+  }
+
+  .nav-btn:hover {
+    border-color: var(--primary);
+    color: var(--primary);
+  }
+
+  .nav-count {
+    font-size: 13px;
+    color: rgba(255,255,255,0.3);
+    font-weight: 500;
+    min-width: 48px;
+    text-align: center;
+  }
+
+  /* VS badge */
+  .vs-badge {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 44px;
+    height: 44px;
+    border-radius: 50%;
+    background: rgba(232,85,58,0.15);
+    border: 2px solid var(--primary);
+    font-family: 'Syne', sans-serif;
+    font-weight: 800;
+    font-size: 14px;
+    color: var(--primary);
+  }
+
+  /* Opportunity tag */
+  .opportunity-banner {
+    background: rgba(90,158,111,0.1);
+    border: 1px solid rgba(90,158,111,0.2);
+    border-radius: 10px;
+    padding: 14px 20px;
+    margin-top: 16px;
+  }
+
+  .opportunity-banner p {
+    font-size: 15px;
+    color: var(--success) !important;
+    font-weight: 500;
+  }
+
+  /* Print styles */
+  @media print {
+    .nav-bar { display: none; }
+    .slide {
+      position: relative !important;
+      opacity: 1 !important;
+      transform: none !important;
+      pointer-events: auto !important;
+      page-break-after: always;
+      min-height: 100vh;
+    }
+  }
+</style>
+</head>
+<body>
+
+<div class="deck" id="deck">
+
+  <!-- ═══════════════ SLIDE 1: TITLE ═══════════════ -->
+  <div class="slide bg-gradient active" data-slide="0">
+    <div style="max-width: 800px;">
+      <div class="slide-number">Competitive Intelligence</div>
+      <h1 style="font-size: 56px; margin-bottom: 20px;">
+        Know the<br>Landscape.<br><span class="text-accent">Own the Gap.</span>
+      </h1>
+      <p class="subtitle" style="font-size: 20px; color: rgba(255,255,255,0.55);">
+        Competitor research & Ideal Customer Profile analysis for Clubd — the social event discovery platform for the lifestyle events boom.
+      </p>
+      <div style="display: flex; gap: 20px; margin-top: 40px; flex-wrap: wrap;">
+        <div class="tag tag-dark">March 2026</div>
+        <div class="tag tag-dark">2 Competitors Analyzed</div>
+        <div class="tag tag-dark">4 Consumer ICPs</div>
+        <div class="tag tag-dark">3 Host ICPs</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ═══════════════ SLIDE 2: THE LANDSCAPE ═══════════════ -->
+  <div class="slide bg-warm" data-slide="1">
+    <div class="slide-number">01 — Context</div>
+    <h2 style="margin-bottom: 8px;">The Event Discovery Landscape</h2>
+    <p class="subtitle" style="max-width: 650px; margin-bottom: 32px;">Three platforms sit closest to Clubd's vision — but none of them are building what we're building.</p>
+    <div class="three-col">
+      <div class="card card-fever">
+        <div style="font-size: 28px; margin-bottom: 8px;">🔥</div>
+        <h3 style="margin-bottom: 4px;">Fever</h3>
+        <p style="font-size: 14px; color: var(--text-muted); margin-bottom: 14px;">Est. 2014 &middot; Madrid, Spain</p>
+        <p style="font-size: 15px;">Global event discovery & ticketing marketplace. 200M+ users, $1.8B unicorn. Focuses on curated entertainment experiences.</p>
+        <div style="margin-top: 16px; display: flex; gap: 8px; flex-wrap: wrap;">
+          <span class="tag tag-fever">$527M Raised</span>
+          <span class="tag tag-fever">40+ Countries</span>
+        </div>
+      </div>
+      <div class="card card-sweat">
+        <div style="font-size: 28px; margin-bottom: 8px;">💪</div>
+        <h3 style="margin-bottom: 4px;">Sweatpals</h3>
+        <p style="font-size: 14px; color: var(--text-muted); margin-bottom: 14px;">Est. 2021 &middot; USA</p>
+        <p style="font-size: 15px;">Social fitness & wellness event platform. Run clubs, yoga, pilates, hiking. Backed by a16z speedrun & Kevin Hart's HartBeat Ventures.</p>
+        <div style="margin-top: 16px; display: flex; gap: 8px; flex-wrap: wrap;">
+          <span class="tag tag-sweat">$20.3M Raised</span>
+          <span class="tag tag-sweat">24 US Cities</span>
+        </div>
+      </div>
+      <div class="card card-clubd">
+        <div style="font-size: 28px; margin-bottom: 8px;">🧡</div>
+        <h3 style="margin-bottom: 4px;">Clubd</h3>
+        <p style="font-size: 14px; color: var(--text-muted); margin-bottom: 14px;">Est. 2026 &middot; Orange County, CA</p>
+        <p style="font-size: 15px;">Social event discovery where your friends' activity IS the discovery engine. Full lifestyle coverage — fitness, food, community, arts, outdoors.</p>
+        <div style="margin-top: 16px; display: flex; gap: 8px; flex-wrap: wrap;">
+          <span class="tag tag-primary">Pre-Launch</span>
+          <span class="tag tag-primary">Social-First</span>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ═══════════════ SLIDE 3: AT-A-GLANCE TABLE ═══════════════ -->
+  <div class="slide bg-dark" data-slide="2">
+    <div class="slide-number">02 — Overview</div>
+    <h2 style="margin-bottom: 4px;">Competitor Snapshot</h2>
+    <p class="subtitle" style="margin-bottom: 20px; color: rgba(255,255,255,0.5);">Key metrics across the competitive set</p>
+    <table class="comp-table">
+      <thead>
+        <tr>
+          <th style="width: 18%;">Metric</th>
+          <th style="width: 27%;">Fever</th>
+          <th style="width: 27%;">Sweatpals</th>
+          <th style="width: 28%;" class="col-clubd">Clubd (Target)</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td>Valuation</td>
+          <td>$1.8B (Unicorn)</td>
+          <td>~$15M</td>
+          <td class="clubd-col">Pre-launch</td>
+        </tr>
+        <tr>
+          <td>Total Funding</td>
+          <td>$527M (Series F)</td>
+          <td>$20.3M (Seed)</td>
+          <td class="clubd-col">—</td>
+        </tr>
+        <tr>
+          <td>Users</td>
+          <td>200M+ global</td>
+          <td>237K+ fitness members</td>
+          <td class="clubd-col">OC launch first</td>
+        </tr>
+        <tr>
+          <td>Revenue Model</td>
+          <td>Ticketing commission + Originals + Ads</td>
+          <td>Ticketing + Host tools + Klarna</td>
+          <td class="clubd-col">5 revenue engines</td>
+        </tr>
+        <tr>
+          <td>Focus</td>
+          <td>Entertainment & cultural experiences</td>
+          <td>Fitness & wellness only</td>
+          <td class="clubd-col">Full lifestyle events</td>
+        </tr>
+        <tr>
+          <td>Social Discovery</td>
+          <td>Weak (algorithmic)</td>
+          <td>None (browse/search)</td>
+          <td class="clubd-col">Core differentiator</td>
+        </tr>
+        <tr>
+          <td>Host Marketing</td>
+          <td>Promoted listings only</td>
+          <td>None</td>
+          <td class="clubd-col">Agency-in-a-box</td>
+        </tr>
+        <tr>
+          <td>Geographic</td>
+          <td>40+ countries</td>
+          <td>24 US cities</td>
+          <td class="clubd-col">OC → nationwide</td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+
+  <!-- ═══════════════ SLIDE 4: FEVER DEEP DIVE ═══════════════ -->
+  <div class="slide bg-warm" data-slide="3">
+    <div class="slide-number">03 — Competitor Deep Dive</div>
+    <h2 style="margin-bottom: 6px;">🔥 Fever</h2>
+    <p style="font-size: 15px; color: var(--text-muted); margin-bottom: 28px;">The event discovery unicorn — entertainment-first, data-driven, globally scaled</p>
+    <div class="split">
+      <div>
+        <h3 style="margin-bottom: 16px;">How They Make Money</h3>
+        <ul class="bullet-list" style="margin-bottom: 28px;">
+          <li><strong>Ticketing commission</strong> on every event booked through the platform</li>
+          <li><strong>Fever Originals</strong> — they CREATE their own events (Candlelight Concerts, immersive art) based on user demand data. High-margin content.</li>
+          <li><strong>Secret Media Network</strong> — city-specific social pages (Secret NYC, Secret LA) that look editorial but funnel traffic to Fever's marketplace</li>
+          <li><strong>Promoted listings</strong> — organizers pay for premium visibility</li>
+          <li><strong>Brand partnerships</strong> — sponsorships on Originals</li>
+        </ul>
+        <h3 style="margin-bottom: 16px;">Key Stats</h3>
+        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 16px;">
+          <div><div class="stat-medium" style="color: var(--primary);">200M+</div><div class="stat-label">Users globally</div></div>
+          <div><div class="stat-medium" style="color: var(--primary);">20x</div><div class="stat-label">Revenue vs. pre-pandemic</div></div>
+          <div><div class="stat-medium" style="color: var(--primary);">4,900</div><div class="stat-label">Employees</div></div>
+          <div><div class="stat-medium" style="color: var(--primary);">40+</div><div class="stat-label">Countries</div></div>
+        </div>
+      </div>
+      <div>
+        <h3 style="margin-bottom: 16px;">The Flywheel That Works</h3>
+        <div class="card" style="background: var(--surface); border: none; margin-bottom: 16px;">
+          <p style="font-size: 15px; text-align: center; line-height: 2;">
+            <strong style="color: var(--text-primary);">User behavior data</strong><br>
+            <span style="color: var(--primary);">↓</span><br>
+            <strong style="color: var(--text-primary);">Identify demand gaps</strong><br>
+            <span style="color: var(--primary);">↓</span><br>
+            <strong style="color: var(--text-primary);">Create Fever Originals</strong><br>
+            <span style="color: var(--primary);">↓</span><br>
+            <strong style="color: var(--text-primary);">Events engineered for shareability</strong><br>
+            <span style="color: var(--primary);">↓</span><br>
+            <strong style="color: var(--text-primary);">UGC drives organic reach</strong><br>
+            <span style="color: var(--primary);">↓</span><br>
+            <strong style="color: var(--text-primary);">More users → more data</strong>
+          </p>
+        </div>
+        <h3 style="margin-bottom: 12px;">Recent Moves (2025)</h3>
+        <ul class="bullet-list bullet-list-sm">
+          <li>Acquired <strong>DICE</strong> (music ticketing) — June 2025</li>
+          <li>Acquired <strong>Atom Tickets</strong> (cinema) — March 2025</li>
+          <li>Secured <strong>$100M</strong> equity injection</li>
+          <li>Official ticketing partner for <strong>LIV Golf</strong> 2026 season</li>
+          <li>Selected for <strong>Formula 1</strong> Spanish Grand Prix</li>
+        </ul>
+      </div>
+    </div>
+  </div>
+
+  <!-- ═══════════════ SLIDE 5: FEVER STRENGTHS & GAPS ═══════════════ -->
+  <div class="slide bg-gradient" data-slide="4">
+    <div class="slide-number">04 — Fever Analysis</div>
+    <h2 style="margin-bottom: 24px;">What Fever Does Well <span style="color: var(--accent);">&</span> Where They Miss</h2>
+    <div class="split">
+      <div>
+        <h3 style="color: var(--success); margin-bottom: 16px;">Strengths</h3>
+        <div class="strength-item">
+          <div class="strength-label"><span style="color: white;">Data-Driven Content Creation</span><span style="color: var(--success);">10/10</span></div>
+          <div class="strength-bar"><div class="strength-fill fill-green" style="width: 100%;"></div></div>
+        </div>
+        <div class="strength-item">
+          <div class="strength-label"><span style="color: white;">Secret Media Network (Distribution)</span><span style="color: var(--success);">9/10</span></div>
+          <div class="strength-bar"><div class="strength-fill fill-green" style="width: 90%;"></div></div>
+        </div>
+        <div class="strength-item">
+          <div class="strength-label"><span style="color: white;">Social-First Experience Design</span><span style="color: var(--success);">8/10</span></div>
+          <div class="strength-bar"><div class="strength-fill fill-green" style="width: 80%;"></div></div>
+        </div>
+        <div class="strength-item">
+          <div class="strength-label"><span style="color: white;">Analytics & Host Business Tools</span><span style="color: var(--success);">8/10</span></div>
+          <div class="strength-bar"><div class="strength-fill fill-green" style="width: 80%;"></div></div>
+        </div>
+        <div class="strength-item">
+          <div class="strength-label"><span style="color: white;">Acquisitions & Category Expansion</span><span style="color: var(--success);">9/10</span></div>
+          <div class="strength-bar"><div class="strength-fill fill-green" style="width: 90%;"></div></div>
+        </div>
+      </div>
+      <div>
+        <h3 style="color: var(--primary); margin-bottom: 16px;">Gaps = Clubd's Opportunity</h3>
+        <div class="card-dark" style="margin-bottom: 14px;">
+          <h3 style="font-size: 16px; margin-bottom: 6px;">No Real Social Graph</h3>
+          <p style="font-size: 14px;">You can "follow friends" but it's an afterthought. No "Sarah is going to this" social proof driving discovery.</p>
+        </div>
+        <div class="card-dark" style="margin-bottom: 14px;">
+          <h3 style="font-size: 16px; margin-bottom: 6px;">Entertainment, Not Community</h3>
+          <p style="font-size: 14px;">Great for Candlelight concerts. Wrong for your local run club, dad walk group, or popup yoga session.</p>
+        </div>
+        <div class="card-dark" style="margin-bottom: 14px;">
+          <h3 style="font-size: 16px; margin-bottom: 6px;">Transactional, Not Relational</h3>
+          <p style="font-size: 14px;">Buy ticket → attend → leave. No ongoing connection to host, attendees, or community.</p>
+        </div>
+        <div class="card-dark">
+          <h3 style="font-size: 16px; margin-bottom: 6px;">No Small-Host Tools</h3>
+          <p style="font-size: 14px;">Built for large-scale producers, not the yoga instructor who needs attendee management and reminders.</p>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ═══════════════ SLIDE 6: SWEATPALS DEEP DIVE ═══════════════ -->
+  <div class="slide bg-warm" data-slide="5">
+    <div class="slide-number">05 — Competitor Deep Dive</div>
+    <h2 style="margin-bottom: 6px;">💪 Sweatpals</h2>
+    <p style="font-size: 15px; color: var(--text-muted); margin-bottom: 28px;">The fitness-focused social event platform — riding the run club / wellness cultural wave</p>
+    <div class="split">
+      <div>
+        <h3 style="margin-bottom: 16px;">How They Make Money</h3>
+        <ul class="bullet-list" style="margin-bottom: 28px;">
+          <li><strong>Ticketing commissions</strong> on paid fitness events & classes</li>
+          <li><strong>Host subscription tools</strong> — digital ticketing, waivers, participant management, group comms</li>
+          <li><strong>Klarna payment plans</strong> — attendees split costs into 4 installments; hosts get paid upfront</li>
+          <li><strong>Membership management</strong> — hosts sell ongoing memberships through the platform</li>
+        </ul>
+        <h3 style="margin-bottom: 16px;">Key Stats</h3>
+        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 16px;">
+          <div><div class="stat-medium" style="color: var(--primary);">216%</div><div class="stat-label">Run club YoY growth</div></div>
+          <div><div class="stat-medium" style="color: var(--primary);">237K+</div><div class="stat-label">Run club members</div></div>
+          <div><div class="stat-medium" style="color: var(--primary);">$20.3M</div><div class="stat-label">Total funding</div></div>
+          <div><div class="stat-medium" style="color: var(--primary);">24</div><div class="stat-label">US cities (12 more planned)</div></div>
+        </div>
+      </div>
+      <div>
+        <h3 style="margin-bottom: 16px;">Categories They Own</h3>
+        <div style="display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 24px;">
+          <span class="tag tag-sweat">Run Clubs</span>
+          <span class="tag tag-sweat">Yoga</span>
+          <span class="tag tag-sweat">Pilates</span>
+          <span class="tag tag-sweat">Hiking</span>
+          <span class="tag tag-sweat">HIIT</span>
+          <span class="tag tag-sweat">Bouldering</span>
+          <span class="tag tag-sweat">Breathwork</span>
+          <span class="tag tag-sweat">Social Sports</span>
+          <span class="tag tag-sweat">Strength Training</span>
+          <span class="tag tag-sweat">Adventure Sports</span>
+        </div>
+        <h3 style="margin-bottom: 12px;">Top Cities</h3>
+        <p style="font-size: 15px; margin-bottom: 20px;">Miami, Austin, Chicago, New York, Los Angeles — exactly Clubd's target expansion markets.</p>
+        <h3 style="margin-bottom: 12px;">Notable Investors</h3>
+        <ul class="bullet-list bullet-list-sm">
+          <li><strong>Patron</strong> (lead)</li>
+          <li><strong>a16z speedrun</strong></li>
+          <li><strong>HartBeat Ventures</strong> (Kevin Hart)</li>
+          <li><strong>Max Mullen</strong> (Instacart co-founder)</li>
+          <li><strong>WndrCo</strong> (Jeffrey Katzenberg / DreamWorks)</li>
+        </ul>
+      </div>
+    </div>
+  </div>
+
+  <!-- ═══════════════ SLIDE 7: SWEATPALS STRENGTHS & GAPS ═══════════════ -->
+  <div class="slide bg-gradient" data-slide="6">
+    <div class="slide-number">06 — Sweatpals Analysis</div>
+    <h2 style="margin-bottom: 24px;">What Sweatpals Does Well <span style="color: var(--accent);">&</span> Where They Miss</h2>
+    <div class="split">
+      <div>
+        <h3 style="color: var(--success); margin-bottom: 16px;">Strengths</h3>
+        <div class="strength-item">
+          <div class="strength-label"><span style="color: white;">Fitness/Wellness Vertical Focus</span><span style="color: var(--success);">10/10</span></div>
+          <div class="strength-bar"><div class="strength-fill fill-green" style="width: 100%;"></div></div>
+        </div>
+        <div class="strength-item">
+          <div class="strength-label"><span style="color: white;">Riding the Cultural Wave (Run Clubs)</span><span style="color: var(--success);">9/10</span></div>
+          <div class="strength-bar"><div class="strength-fill fill-green" style="width: 90%;"></div></div>
+        </div>
+        <div class="strength-item">
+          <div class="strength-label"><span style="color: white;">Fitness-Specific Host Tools</span><span style="color: var(--success);">8/10</span></div>
+          <div class="strength-bar"><div class="strength-fill fill-green" style="width: 80%;"></div></div>
+        </div>
+        <div class="strength-item">
+          <div class="strength-label"><span style="color: white;">Social Fitness Journal / Profiles</span><span style="color: var(--success);">7/10</span></div>
+          <div class="strength-bar"><div class="strength-fill fill-green" style="width: 70%;"></div></div>
+        </div>
+        <div class="strength-item">
+          <div class="strength-label"><span style="color: white;">City-by-City Expansion Model</span><span style="color: var(--success);">8/10</span></div>
+          <div class="strength-bar"><div class="strength-fill fill-green" style="width: 80%;"></div></div>
+        </div>
+      </div>
+      <div>
+        <h3 style="color: var(--primary); margin-bottom: 16px;">Gaps = Clubd's Opportunity</h3>
+        <div class="card-dark" style="margin-bottom: 14px;">
+          <h3 style="font-size: 16px; margin-bottom: 6px;">Fitness Only — Too Narrow</h3>
+          <p style="font-size: 14px;">No popup dinners, brewery events, art walks, community cleanups, dad groups, matcha meetups, or seal releases. Their brand IS fitness.</p>
+        </div>
+        <div class="card-dark" style="margin-bottom: 14px;">
+          <h3 style="font-size: 16px; margin-bottom: 6px;">No Friend-Driven Social Discovery</h3>
+          <p style="font-size: 14px;">Profiles exist but there's no "Sarah is going" → you discover it social flywheel. Still category/location browse.</p>
+        </div>
+        <div class="card-dark" style="margin-bottom: 14px;">
+          <h3 style="font-size: 16px; margin-bottom: 6px;">No Brand/Sponsor Ecosystem</h3>
+          <p style="font-size: 14px;">No marketplace for Lululemon to sponsor a run club. Revenue is purely transactional — no ecosystem play.</p>
+        </div>
+        <div class="card-dark">
+          <h3 style="font-size: 16px; margin-bottom: 6px;">No Marketing Services</h3>
+          <p style="font-size: 14px;">No agency-in-a-box. Hosts still figure out their own promotion. The #1 host pain point remains unsolved.</p>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ═══════════════ SLIDE 8: PARTIFUL BONUS ═══════════════ -->
+  <div class="slide bg-warm" data-slide="7">
+    <div class="slide-number">07 — Notable Mention</div>
+    <h2 style="margin-bottom: 8px;">🎉 Partiful</h2>
+    <p class="subtitle" style="margin-bottom: 28px;">Not a direct competitor — but their social mechanics are worth studying.</p>
+    <div class="split-60-40">
+      <div>
+        <div style="display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 16px; margin-bottom: 28px;">
+          <div class="card" style="text-align: center; padding: 20px;">
+            <div class="stat-medium" style="color: var(--primary); font-size: 28px;">$140M</div>
+            <div class="stat-label">Valuation</div>
+          </div>
+          <div class="card" style="text-align: center; padding: 20px;">
+            <div class="stat-medium" style="color: var(--primary); font-size: 28px;">500K</div>
+            <div class="stat-label">Monthly Active Users</div>
+          </div>
+          <div class="card" style="text-align: center; padding: 20px;">
+            <div class="stat-medium" style="color: var(--primary); font-size: 28px;">400%</div>
+            <div class="stat-label">YoY Growth</div>
+          </div>
+        </div>
+        <h3 style="margin-bottom: 12px;">What Makes Them Special</h3>
+        <ul class="bullet-list">
+          <li><strong>Frictionless UX:</strong> Text-based invites, no app download required, one-tap RSVP. Google's Best App of 2024.</li>
+          <li><strong>"Who's Going" Transparency:</strong> Seeing friends on the guest list converts undecided people. The social snowball effect.</li>
+          <li><strong>Gen Z Aesthetic:</strong> Meme-based designs, GIFs, humor — event planning feels fun, not utilitarian.</li>
+          <li><strong>"Crush" Feature (2026):</strong> Anonymously signal romantic interest in people from events you've both attended. Dating layered onto social overlap.</li>
+          <li><strong>Expanding Beyond Parties:</strong> a16z mandated Partiful for all NY Tech Week events — 1,000+ person professional conferences.</li>
+        </ul>
+      </div>
+      <div>
+        <div class="card card-accent" style="margin-bottom: 20px;">
+          <h3 style="font-size: 16px; margin-bottom: 8px; color: var(--primary);">Why Partiful Won't Compete With Clubd</h3>
+          <p style="font-size: 15px;">Partiful is <strong>invite-only</strong>. You create an event and invite specific people. There is no public discovery — no "what's happening near me" feed. They're built for private parties and personal events, not community event discovery.</p>
+        </div>
+        <div class="card card-accent">
+          <h3 style="font-size: 16px; margin-bottom: 8px; color: var(--primary);">What Clubd Should Steal</h3>
+          <ul class="bullet-list bullet-list-sm">
+            <li>The "who's going" social proof should be Clubd's most prominent UI element</li>
+            <li>Frictionless guest experience — no download required for first touch</li>
+            <li>Personality-driven design — playful, not corporate</li>
+            <li>Consider a "Crush" / matchmaking layer for community events down the line</li>
+          </ul>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ═══════════════ SLIDE 9: COMPETITIVE MOAT ═══════════════ -->
+  <div class="slide bg-dark" data-slide="8">
+    <div class="slide-number">08 — Competitive Moat</div>
+    <h2 style="margin-bottom: 4px;">Feature Comparison Matrix</h2>
+    <p class="subtitle" style="color: rgba(255,255,255,0.45); margin-bottom: 16px;">Where Clubd wins across every dimension that matters</p>
+    <table class="matrix-table">
+      <thead>
+        <tr>
+          <th style="width: 30%;">Capability</th>
+          <th style="width: 17%;">Fever</th>
+          <th style="width: 17%;">Sweatpals</th>
+          <th style="width: 17%;">Partiful</th>
+          <th style="width: 19%;" class="highlight">Clubd</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td>Social graph drives discovery</td>
+          <td><span class="cross">✕</span></td>
+          <td><span class="cross">✕</span></td>
+          <td><span class="partial">~ Private</span></td>
+          <td class="highlight-col"><span class="check">✓ Core</span></td>
+        </tr>
+        <tr>
+          <td>"Friends going" social proof</td>
+          <td><span class="partial">~ Weak</span></td>
+          <td><span class="cross">✕</span></td>
+          <td><span class="check">✓</span></td>
+          <td class="highlight-col"><span class="check">✓ Core</span></td>
+        </tr>
+        <tr>
+          <td>Full lifestyle event coverage</td>
+          <td><span class="partial">~ Entertainment</span></td>
+          <td><span class="partial">~ Fitness only</span></td>
+          <td><span class="partial">~ Private only</span></td>
+          <td class="highlight-col"><span class="check">✓ Full</span></td>
+        </tr>
+        <tr>
+          <td>Host marketing services</td>
+          <td><span class="cross">✕</span></td>
+          <td><span class="cross">✕</span></td>
+          <td><span class="cross">✕</span></td>
+          <td class="highlight-col"><span class="check">✓</span></td>
+        </tr>
+        <tr>
+          <td>Booking engine + SaaS tools</td>
+          <td><span class="partial">~ Ticketing</span></td>
+          <td><span class="partial">~ Basic</span></td>
+          <td><span class="cross">✕</span></td>
+          <td class="highlight-col"><span class="check">✓ Full stack</span></td>
+        </tr>
+        <tr>
+          <td>Brand/sponsor marketplace</td>
+          <td><span class="partial">~ Limited</span></td>
+          <td><span class="cross">✕</span></td>
+          <td><span class="cross">✕</span></td>
+          <td class="highlight-col"><span class="check">✓</span></td>
+        </tr>
+        <tr>
+          <td>Event-centric profiles</td>
+          <td><span class="cross">✕</span></td>
+          <td><span class="partial">~ Fitness journal</span></td>
+          <td><span class="cross">✕</span></td>
+          <td class="highlight-col"><span class="check">✓ Core</span></td>
+        </tr>
+        <tr>
+          <td>"Notify me" advance discovery</td>
+          <td><span class="partial">~ Weak alerts</span></td>
+          <td><span class="partial">~ Category</span></td>
+          <td><span class="cross">✕</span></td>
+          <td class="highlight-col"><span class="check">✓ Core</span></td>
+        </tr>
+        <tr>
+          <td>Free for hosts to list events</td>
+          <td><span class="cross">✕</span></td>
+          <td><span class="partial">~ Limited</span></td>
+          <td><span class="check">✓</span></td>
+          <td class="highlight-col"><span class="check">✓</span></td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+
+  <!-- ═══════════════ SLIDE 10: CONSUMER ICPs ═══════════════ -->
+  <div class="slide bg-accent-gradient" data-slide="9">
+    <div class="slide-number">09 — Ideal Customer Profiles</div>
+    <h2 style="margin-bottom: 6px;">Consumer ICPs</h2>
+    <p class="subtitle" style="color: rgba(255,255,255,0.45); margin-bottom: 24px;">Four distinct audiences — all underserved by current platforms</p>
+    <div class="four-col">
+      <div class="persona-card">
+        <div class="persona-emoji">🏃‍♀️</div>
+        <div class="persona-name">The Active Social Seeker</div>
+        <div class="persona-age">25–34 &middot; OC / Urban-Suburban</div>
+        <div class="persona-quote">"I want to do MORE stuff but I never know what's happening until it's too late."</div>
+        <div class="persona-detail">
+          Goes to 2-4 events/week. Run club Tuesday, yoga Thursday, popup brunch Saturday. Follows wellness influencers. Currently discovers through Instagram stories & friend texts.
+        </div>
+      </div>
+      <div class="persona-card">
+        <div class="persona-emoji">🌱</div>
+        <div class="persona-name">The Wellness Curious Explorer</div>
+        <div class="persona-age">22–30 &middot; New to Area</div>
+        <div class="persona-quote">"I want to meet people and try new things but don't want to show up alone."</div>
+        <div class="persona-detail">
+          Goes to 1-2 events/month, wants more. Intimidated by showing up where everyone knows each other. Seeing friends "interested" lowers the barrier.
+        </div>
+      </div>
+      <div class="persona-card">
+        <div class="persona-emoji">👨‍👧</div>
+        <div class="persona-name">The Connected Parent</div>
+        <div class="persona-age">30–40 &middot; Suburban OC</div>
+        <div class="persona-quote">"I used to have a social life. Now I need events that work around nap schedules."</div>
+        <div class="persona-detail">
+          Dad walk groups, mom & baby yoga, family-friendly brewery afternoons. Wants community but has limited time. Needs family-friendly filters.
+        </div>
+      </div>
+      <div class="persona-card">
+        <div class="persona-emoji">🍷</div>
+        <div class="persona-name">The Weekend Experience Seeker</div>
+        <div class="persona-age">26–38 &middot; Couple / Friend Group</div>
+        <div class="persona-quote">"We keep defaulting to the same restaurants because we don't know what else is happening."</div>
+        <div class="persona-detail">
+          Popup dinners, wine tasting, live music at breweries, art walks. Plans weekends around "what's the move?" One person is always the planner.
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ═══════════════ SLIDE 11: HOST ICPs ═══════════════ -->
+  <div class="slide bg-warm" data-slide="10">
+    <div class="slide-number">10 — Ideal Customer Profiles</div>
+    <h2 style="margin-bottom: 6px;">Host ICPs</h2>
+    <p class="subtitle" style="margin-bottom: 28px;">Three host profiles that drive Clubd's supply side — and revenue</p>
+    <div class="three-col">
+      <div class="card card-accent">
+        <div style="font-size: 32px; margin-bottom: 12px;">🧘</div>
+        <h3 style="margin-bottom: 4px;">The Fitness Instructor</h3>
+        <p style="font-size: 14px; color: var(--text-muted); margin-bottom: 14px;">Pilates studio, yoga teacher, run club leader, boot camp coach</p>
+        <div class="divider" style="margin: 14px 0;"></div>
+        <p style="font-size: 14px; margin-bottom: 12px;"><strong>The Pain:</strong> "I spend more time on marketing than teaching."</p>
+        <p style="font-size: 14px; margin-bottom: 12px;"><strong>Current Stack:</strong> Instagram + Linktree + Google Forms + Mailchimp + Canva + Venmo</p>
+        <p style="font-size: 14px; margin-bottom: 12px;"><strong>Why Clubd:</strong> Replaces 6 tools with one. Events auto-discoverable. Payment processing built in.</p>
+        <div style="background: var(--surface); border-radius: 8px; padding: 12px; margin-top: 14px;">
+          <p style="font-size: 13px; color: var(--primary); font-weight: 600;">Revenue: Clubd Pro ($29-99/mo) + Booking commission + Promoted events</p>
+        </div>
+      </div>
+      <div class="card card-accent">
+        <div style="font-size: 32px; margin-bottom: 12px;">🤝</div>
+        <h3 style="margin-bottom: 4px;">The Community Organizer</h3>
+        <p style="font-size: 14px; color: var(--text-muted); margin-bottom: 14px;">Dad walk group, book club, beach cleanup, nonprofit, social league</p>
+        <div class="divider" style="margin: 14px 0;"></div>
+        <p style="font-size: 14px; margin-bottom: 12px;"><strong>The Pain:</strong> "I organize events for free and can barely get the word out."</p>
+        <p style="font-size: 14px; margin-bottom: 12px;"><strong>Current Stack:</strong> Facebook group or group text + maybe Instagram</p>
+        <p style="font-size: 14px; margin-bottom: 12px;"><strong>Why Clubd:</strong> Free to list. Discovery feed brings new people organically. Social graph brings friends-of-friends.</p>
+        <div style="background: var(--surface); border-radius: 8px; padding: 12px; margin-top: 14px;">
+          <p style="font-size: 13px; color: var(--primary); font-weight: 600;">Revenue: Free → Clubd Pro as group grows → Marketing services for big events</p>
+        </div>
+      </div>
+      <div class="card card-accent">
+        <div style="font-size: 32px; margin-bottom: 12px;">🍺</div>
+        <h3 style="margin-bottom: 4px;">The Local Business Host</h3>
+        <p style="font-size: 14px; color: var(--text-muted); margin-bottom: 14px;">Brewery, restaurant, coffee shop, retail store hosting events</p>
+        <div class="divider" style="margin: 14px 0;"></div>
+        <p style="font-size: 14px; margin-bottom: 12px;"><strong>The Pain:</strong> "We host events for foot traffic but only regulars know about them."</p>
+        <p style="font-size: 14px; margin-bottom: 12px;"><strong>Current Stack:</strong> Instagram + in-store flyers + maybe Eventbrite</p>
+        <p style="font-size: 14px; margin-bottom: 12px;"><strong>Why Clubd:</strong> Reaches event-seeking consumers not already following them. Analytics on conversion.</p>
+        <div style="background: var(--surface); border-radius: 8px; padding: 12px; margin-top: 14px;">
+          <p style="font-size: 13px; color: var(--primary); font-weight: 600;">Revenue: Promoted events ($50-500) + Commission + Venue partnership ($199-999/mo)</p>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ═══════════════ SLIDE 12: LESSONS TO STEAL ═══════════════ -->
+  <div class="slide bg-dark" data-slide="11">
+    <div class="slide-number">11 — Competitive Intelligence</div>
+    <h2 style="margin-bottom: 24px;">Lessons to Steal</h2>
+    <div class="three-col">
+      <div>
+        <h3 style="color: var(--fever-brand); margin-bottom: 16px;">From Fever</h3>
+        <div class="lesson-card" style="margin-bottom: 14px;">
+          <div class="lesson-source" style="color: var(--fever-brand);">Media Network</div>
+          <div class="lesson-title">Build the Media Arm Early</div>
+          <div class="lesson-text">Launch "Clubd OC" social accounts NOW — curate "things to do this weekend" content. Build audience before app launches. Fever's Secret Media Network is their most underrated asset.</div>
+        </div>
+        <div class="lesson-card" style="margin-bottom: 14px;">
+          <div class="lesson-source" style="color: var(--fever-brand);">Data Flywheel</div>
+          <div class="lesson-title">Data → Content Creation</div>
+          <div class="lesson-text">Use behavior data to identify demand gaps. "500 people searching for run clubs in Irvine, only 2 options — want to start one?"</div>
+        </div>
+        <div class="lesson-card">
+          <div class="lesson-source" style="color: var(--fever-brand);">Shareability</div>
+          <div class="lesson-title">Design for UGC</div>
+          <div class="lesson-text">Every event card should be beautiful and shareable to Instagram stories. The event IS the marketing for the next event.</div>
+        </div>
+      </div>
+      <div>
+        <h3 style="color: var(--sweat-brand); margin-bottom: 16px;">From Sweatpals</h3>
+        <div class="lesson-card" style="margin-bottom: 14px;">
+          <div class="lesson-source" style="color: var(--sweat-brand);">Vertical Tools</div>
+          <div class="lesson-title">Host Tools Per Vertical</div>
+          <div class="lesson-text">Sweatpals built waiver signing because fitness hosts need it. Clubd should identify vertical-specific tools: waivers for fitness, dietary forms for food events, volunteer tracking for nonprofits.</div>
+        </div>
+        <div class="lesson-card" style="margin-bottom: 14px;">
+          <div class="lesson-source" style="color: var(--sweat-brand);">Cultural Wave</div>
+          <div class="lesson-title">Ride the Trend Hard</div>
+          <div class="lesson-text">Run clubs +216% YoY. "Third places." Community fitness. Position Clubd at the center of these cultural moments in every piece of marketing.</div>
+        </div>
+        <div class="lesson-card">
+          <div class="lesson-source" style="color: var(--sweat-brand);">Expansion</div>
+          <div class="lesson-title">City-by-City Playbook</div>
+          <div class="lesson-text">Study which cities worked and why. Miami, Austin, Chicago, NYC, LA all have distinct community event cultures. OC is the perfect proving ground.</div>
+        </div>
+      </div>
+      <div>
+        <h3 style="color: var(--partiful-brand); margin-bottom: 16px;">From Partiful</h3>
+        <div class="lesson-card" style="margin-bottom: 14px;">
+          <div class="lesson-source" style="color: var(--partiful-brand);">UX</div>
+          <div class="lesson-title">Frictionless First Touch</div>
+          <div class="lesson-text">No app download required for guests. Text-based invite → web RSVP → then convert to app. Partiful proved this converts at massive scale.</div>
+        </div>
+        <div class="lesson-card" style="margin-bottom: 14px;">
+          <div class="lesson-source" style="color: var(--partiful-brand);">Social Proof</div>
+          <div class="lesson-title">"Who's Going" = Killer Feature</div>
+          <div class="lesson-text">Seeing friends on the guest list converts undecided people. This should be Clubd's most prominent UI element on every single event card.</div>
+        </div>
+        <div class="lesson-card">
+          <div class="lesson-source" style="color: var(--partiful-brand);">Design</div>
+          <div class="lesson-title">Personality > Polish</div>
+          <div class="lesson-text">Partiful's playful, meme-friendly design made event planning feel FUN. Clubd should have personality — warm, energetic, not enterprise software.</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ═══════════════ SLIDE 13: STRATEGY ═══════════════ -->
+  <div class="slide bg-primary" data-slide="12">
+    <div class="slide-number" style="color: rgba(255,255,255,0.5);">12 — Strategic Recommendations</div>
+    <h2 style="margin-bottom: 28px; font-size: 36px;">Five Moves to<br>Win the Market</h2>
+    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 20px;">
+      <div style="background: rgba(255,255,255,0.12); border-radius: 14px; padding: 24px;">
+        <div style="font-family: 'Syne', sans-serif; font-size: 40px; font-weight: 800; color: rgba(255,255,255,0.2); margin-bottom: 8px;">01</div>
+        <h3 style="color: white; font-size: 18px; margin-bottom: 8px;">Own "Lifestyle Events" — Not Everything</h3>
+        <p style="font-size: 14px; color: rgba(255,255,255,0.7);">Yes: Run clubs, yoga, popup dinners, brewery events, beach cleanups, art walks, dad groups, matcha meetups. No: Tech meetups, corporate networking, gaming events, political rallies.</p>
+      </div>
+      <div style="background: rgba(255,255,255,0.12); border-radius: 14px; padding: 24px;">
+        <div style="font-family: 'Syne', sans-serif; font-size: 40px; font-weight: 800; color: rgba(255,255,255,0.2); margin-bottom: 8px;">02</div>
+        <h3 style="color: white; font-size: 18px; margin-bottom: 8px;">Lead with Social, Not Search</h3>
+        <p style="font-size: 14px; color: rgba(255,255,255,0.7);">Home screen leads with "Your friends are going to…" and "People like you attended…" — not a category grid. This is THE differentiator vs. every competitor.</p>
+      </div>
+      <div style="background: rgba(255,255,255,0.12); border-radius: 14px; padding: 24px;">
+        <div style="font-family: 'Syne', sans-serif; font-size: 40px; font-weight: 800; color: rgba(255,255,255,0.2); margin-bottom: 8px;">03</div>
+        <h3 style="color: white; font-size: 18px; margin-bottom: 8px;">Start Hyper-Local in OC</h3>
+        <p style="font-size: 14px; color: rgba(255,255,255,0.7);">Launch with 30-50 handpicked hosts across all lifestyle categories. Prove the social flywheel in one market. OC's demo is the perfect testbed.</p>
+      </div>
+      <div style="background: rgba(255,255,255,0.12); border-radius: 14px; padding: 24px;">
+        <div style="font-family: 'Syne', sans-serif; font-size: 40px; font-weight: 800; color: rgba(255,255,255,0.2); margin-bottom: 8px;">04</div>
+        <h3 style="color: white; font-size: 18px; margin-bottom: 8px;">Build the Media Arm Immediately</h3>
+        <p style="font-size: 14px; color: rgba(255,255,255,0.7);">Launch "Clubd OC" Instagram/TikTok now — even before the app. Curate "things to do this weekend" content. Build audience → launch → funnel. Steal Fever's playbook at city scale.</p>
+      </div>
+      <div style="background: rgba(255,255,255,0.12); border-radius: 14px; padding: 24px; grid-column: span 2;">
+        <div style="font-family: 'Syne', sans-serif; font-size: 40px; font-weight: 800; color: rgba(255,255,255,0.2); margin-bottom: 8px;">05</div>
+        <h3 style="color: white; font-size: 18px; margin-bottom: 8px;">Make the Free Tier Unbeatable for Hosts</h3>
+        <p style="font-size: 14px; color: rgba(255,255,255,0.7);">Sweatpals and Fever charge hosts. Clubd should make the free tier generous enough that every run club leader, yoga instructor, and community organizer lists without hesitation. Monetize through Pro tools, commissions, and promotions — not by gatekeeping basic event listing.</p>
+      </div>
+    </div>
+  </div>
+
+  <!-- ═══════════════ SLIDE 14: MARKET SIGNALS ═══════════════ -->
+  <div class="slide bg-dark" data-slide="13">
+    <div class="slide-number">13 — Market Validation</div>
+    <h2 style="margin-bottom: 28px;">The Numbers Say <span class="text-accent">Go.</span></h2>
+    <div class="four-col" style="margin-bottom: 36px;">
+      <div style="text-align: center;">
+        <div class="stat-number" style="font-size: 48px;">216%</div>
+        <div class="stat-label" style="margin-top: 8px;">Run club growth YoY<br><span style="font-size: 12px; letter-spacing: 0;">(Sweatpals, 2025)</span></div>
+      </div>
+      <div style="text-align: center;">
+        <div class="stat-number" style="font-size: 48px;">200M+</div>
+        <div class="stat-label" style="margin-top: 8px;">Fever global users<br><span style="font-size: 12px; letter-spacing: 0;">(Event discovery is massive)</span></div>
+      </div>
+      <div style="text-align: center;">
+        <div class="stat-number" style="font-size: 48px;">400%</div>
+        <div class="stat-label" style="margin-top: 8px;">Partiful MAU growth<br><span style="font-size: 12px; letter-spacing: 0;">(Social event mechanics work)</span></div>
+      </div>
+      <div style="text-align: center;">
+        <div class="stat-number" style="font-size: 48px;">$1.8B</div>
+        <div class="stat-label" style="margin-top: 8px;">Fever's valuation<br><span style="font-size: 12px; letter-spacing: 0;">(Category is VC-proven)</span></div>
+      </div>
+    </div>
+    <div class="two-col">
+      <div class="card-dark">
+        <h3 style="margin-bottom: 10px; font-size: 18px;">The Cultural Moment</h3>
+        <ul class="bullet-list bullet-list-sm">
+          <li>"Third Places" movement — people seeking community outside home/work</li>
+          <li>Run clubs replacing bars as the social gathering of choice</li>
+          <li>Wellness-as-lifestyle going mainstream beyond just fitness</li>
+          <li>Gen Z and Millennials choosing experiences over things</li>
+          <li>Post-pandemic loneliness driving demand for IRL connection</li>
+        </ul>
+      </div>
+      <div class="card-dark">
+        <h3 style="margin-bottom: 10px; font-size: 18px;">Why OC Is the Perfect Launchpad</h3>
+        <ul class="bullet-list bullet-list-sm">
+          <li>Dense concentration of fitness studios, wellness events, outdoor activities</li>
+          <li>Affluent 25-40 demographic that spends on experiences</li>
+          <li>Strong community event culture (run clubs, yoga, beach cleanups, popup dinners)</li>
+          <li>Year-round outdoor event weather</li>
+          <li>Tight geographic radius — easy to build dense social graph quickly</li>
+        </ul>
+      </div>
+    </div>
+  </div>
+
+  <!-- ═══════════════ SLIDE 15: THE OPPORTUNITY ═══════════════ -->
+  <div class="slide bg-gradient" data-slide="14">
+    <div class="slide-number">14 — The Opportunity</div>
+    <div style="max-width: 750px;">
+      <h1 style="font-size: 48px; margin-bottom: 24px; line-height: 1.15;">
+        Fever built a marketplace.<br>
+        Sweatpals built a vertical.<br>
+        Partiful built invitations.<br>
+        <span class="text-accent">Clubd builds community.</span>
+      </h1>
+      <div class="divider"></div>
+      <p style="font-size: 20px; color: rgba(255,255,255,0.6); line-height: 1.6; margin-bottom: 32px;">
+        The platform that combines <strong style="color: white;">social discovery</strong> + <strong style="color: white;">full lifestyle coverage</strong> + <strong style="color: white;">host operating system</strong> doesn't exist yet. The market is massive, validated, and growing. The audience is underserved. The timing is now.
+      </p>
+      <p style="font-size: 18px; color: rgba(255,255,255,0.4); font-style: italic;">
+        Never miss the seal release again.
+      </p>
+    </div>
+  </div>
+
+</div>
+
+<!-- ═══════════════ NAVIGATION ═══════════════ -->
+<div class="nav-bar">
+  <div class="nav-brand">clubd</div>
+  <div class="nav-dots" id="navDots"></div>
+  <div class="nav-controls">
+    <button class="nav-btn" onclick="navigate(-1)">&#8592;</button>
+    <span class="nav-count" id="navCount">1 / 15</span>
+    <button class="nav-btn" onclick="navigate(1)">&#8594;</button>
+  </div>
+</div>
+
+<script>
+  const slides = document.querySelectorAll('.slide');
+  const navCount = document.getElementById('navCount');
+  const navDots = document.getElementById('navDots');
+  let current = 0;
+
+  // Build dots
+  slides.forEach((_, i) => {
+    const dot = document.createElement('div');
+    dot.className = 'nav-dot' + (i === 0 ? ' active' : '');
+    dot.onclick = () => goTo(i);
+    navDots.appendChild(dot);
+  });
+
+  function goTo(idx) {
+    if (idx < 0 || idx >= slides.length || idx === current) return;
+    slides[current].classList.remove('active');
+    slides[current].classList.add(idx > current ? 'prev' : '');
+    setTimeout(() => slides[current === idx ? current : current].classList.remove('prev'), 500);
+
+    const prev = current;
+    current = idx;
+    slides[current].classList.remove('prev');
+    slides[current].classList.add('active');
+
+    // Update dots
+    document.querySelectorAll('.nav-dot').forEach((d, i) => {
+      d.classList.toggle('active', i === current);
+    });
+
+    navCount.textContent = `${current + 1} / ${slides.length}`;
+
+    // Remove prev class from old slide after transition
+    setTimeout(() => { slides[prev].classList.remove('prev'); }, 500);
+  }
+
+  function navigate(dir) { goTo(current + dir); }
+
+  // Keyboard navigation
+  document.addEventListener('keydown', (e) => {
+    if (e.key === 'ArrowRight' || e.key === ' ') { e.preventDefault(); navigate(1); }
+    if (e.key === 'ArrowLeft') { e.preventDefault(); navigate(-1); }
+    if (e.key === 'Home') { e.preventDefault(); goTo(0); }
+    if (e.key === 'End') { e.preventDefault(); goTo(slides.length - 1); }
+  });
+
+  // Touch support
+  let touchStartX = 0;
+  document.addEventListener('touchstart', (e) => { touchStartX = e.touches[0].clientX; });
+  document.addEventListener('touchend', (e) => {
+    const diff = touchStartX - e.changedTouches[0].clientX;
+    if (Math.abs(diff) > 50) navigate(diff > 0 ? 1 : -1);
+  });
+</script>
+
+</body>
+</html>

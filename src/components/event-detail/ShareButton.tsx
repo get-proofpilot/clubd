@@ -54,15 +54,15 @@ export default function ShareButton({
     <>
       <button
         onClick={handleShare}
-        className="absolute right-4 top-[max(env(safe-area-inset-top),16px)] z-10 flex h-10 w-10 items-center justify-center rounded-full glass-dark border border-white/10"
+        className="flex h-9 w-9 items-center justify-center rounded-full bg-white/80 backdrop-blur shadow-sm text-[var(--color-text-primary)] hover:bg-white transition-colors"
         aria-label="Share event"
       >
-        <Share2 className="h-5 w-5 text-white" strokeWidth={1.8} />
+        <Share2 className="h-4 w-4" strokeWidth={1.8} />
       </button>
 
       {toast && (
-        <div className="fixed inset-x-0 bottom-24 z-50 flex justify-center px-5 animate-fade-up">
-          <div className="rounded-[var(--radius-md)] glass-white border border-[var(--color-border-subtle)] px-5 py-3 text-sm font-semibold text-[var(--color-text-primary)] card-shadow">
+        <div className="absolute inset-x-0 bottom-24 z-50 flex justify-center px-4 animate-fade-up pointer-events-none">
+          <div className="rounded-xl glass-panel border border-gray-100 px-4 py-2.5 text-sm font-semibold text-[var(--color-text-primary)] shadow-[var(--shadow-soft)]">
             {toast}
           </div>
         </div>

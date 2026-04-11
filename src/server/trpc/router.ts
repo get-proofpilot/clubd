@@ -5,6 +5,7 @@ import { eventRouter } from "../routers/event";
 import { hostRouter } from "../routers/host";
 import { rsvpRouter } from "../routers/rsvp";
 import { checkoutRouter } from "../routers/checkout";
+import { communityRouter } from "../routers/community";
 
 export const appRouter = router({
   auth: authRouter,
@@ -13,6 +14,7 @@ export const appRouter = router({
   host: hostRouter,
   rsvp: rsvpRouter,
   checkout: checkoutRouter,
+  community: communityRouter,
 });
 
 export type AppRouter = typeof appRouter;

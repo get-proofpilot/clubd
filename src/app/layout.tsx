@@ -1,16 +1,13 @@
 import type { Metadata, Viewport } from "next";
-import { Syne, Outfit, Geist } from "next/font/google";
+import { Inter, Outfit } from "next/font/google";
 import "./globals.css";
 import { cn } from "@/lib/utils";
 import { Providers } from "./providers";
 
-const geist = Geist({subsets:['latin'],variable:'--font-sans'});
-
-const syne = Syne({
+const inter = Inter({
   subsets: ["latin"],
-  variable: "--font-syne",
+  variable: "--font-inter",
   display: "swap",
-  weight: ["400", "500", "600", "700", "800"],
 });
 
 const outfit = Outfit({
@@ -91,7 +88,7 @@ export const viewport: Viewport = {
   initialScale: 1,
   maximumScale: 1,
   viewportFit: "cover",
-  themeColor: "#F7F4EF",
+  themeColor: "#F4F4F3",
 };
 
 export default function RootLayout({
@@ -100,7 +97,7 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="en" className={cn(syne.variable, outfit.variable, "font-sans", geist.variable)}>
+    <html lang="en" className={cn(inter.variable, outfit.variable, "font-sans")}>
       <body className="antialiased">
         <Providers>{children}</Providers>
       </body>

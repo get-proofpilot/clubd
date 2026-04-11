@@ -135,6 +135,7 @@ export const hostRouter = router({
         capacity: input.capacity ?? null,
         pricingType: input.pricingType,
         serviceFeePercent: input.serviceFeePercent,
+        communityId: input.communityId ?? null,
         imageUrl: null,
         status: "draft",
         createdAt: now,

@@ -2,7 +2,7 @@
 
 import { useState, useRef, useEffect, useCallback } from 'react';
 import { useRouter } from 'next/navigation';
-import { Phone, ArrowLeft, Loader2 } from 'lucide-react';
+import { ArrowLeft, Loader2, Users, BookUser, MapPin, ShieldCheck, ChevronDown } from 'lucide-react';
 import { authClient } from '@/lib/auth-client';
 import { phoneNumberSchema, otpCodeSchema } from '@/lib/validators/auth';
 
@@ -25,21 +25,22 @@ function GoogleIcon() {
   );
 }
 
-type LoginStep = 'methods' | 'phone-input' | 'otp-verify';
+type LoginStep = 'form' | 'otp-verify';
 
 export default function LoginPage() {
   const router = useRouter();
-  const [step, setStep] = useState<LoginStep>('methods');
+  const [step, setStep] = useState<LoginStep>('form');
   const [phoneNumber, setPhoneNumber] = useState('');
   const [otpDigits, setOtpDigits] = useState<string[]>(['', '', '', '', '', '']);
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
   const [demoLoading, setDemoLoading] = useState(false);
   const [resendTimer, setResendTimer] = useState(0);
+  const [contactsEnabled, setContactsEnabled] = useState(false);
+  const [locationEnabled, setLocationEnabled] = useState(true);
   const otpRefs = useRef<(HTMLInputElement | null)[]>([]);
   const showDemoLogin = process.env.NEXT_PUBLIC_DEMO_LOGIN_ENABLED === 'true';
 
-  // Resend countdown timer
   useEffect(() => {
     if (resendTimer <= 0) return;
     const interval = setInterval(() => setResendTimer((t) => t - 1), 1000);
@@ -70,20 +71,14 @@ export default function LoginPage() {
       setError('Please enter a valid 10-digit US phone number.');
       return;
     }
-
     setLoading(true);
     setError(null);
-
     try {
-      const response = await authClient.phoneNumber.sendOtp({
-        phoneNumber: e164,
-      });
-
+      const response = await authClient.phoneNumber.sendOtp({ phoneNumber: e164 });
       if (response.error) {
-        setError(response.error.message || 'Failed to send verification code. Please try again.');
+        setError(response.error.message || 'Failed to send verification code.');
         return;
       }
-
       setStep('otp-verify');
       setResendTimer(60);
       setOtpDigits(['', '', '', '', '', '']);
@@ -100,25 +95,17 @@ export default function LoginPage() {
       setError('Please enter a valid 6-digit code.');
       return;
     }
-
     setLoading(true);
     setError(null);
-
     try {
       const e164 = toE164(phoneNumber);
-      const response = await authClient.phoneNumber.verify({
-        phoneNumber: e164,
-        code,
-      });
-
+      const response = await authClient.phoneNumber.verify({ phoneNumber: e164, code });
       if (response.error) {
         setError(response.error.message || 'Invalid code. Please try again.');
         setOtpDigits(['', '', '', '', '', '']);
         otpRefs.current[0]?.focus();
         return;
       }
-
-      // Check if user needs onboarding
       const session = await authClient.getSession();
       if (session.data?.user && !(session.data.user as Record<string, unknown>).onboardingComplete) {
         router.push('/onboarding');
@@ -138,16 +125,9 @@ export default function LoginPage() {
     newDigits[index] = digit;
     setOtpDigits(newDigits);
     setError(null);
-
-    if (digit && index < 5) {
-      otpRefs.current[index + 1]?.focus();
-    }
-
-    // Auto-submit when all 6 digits filled
+    if (digit && index < 5) otpRefs.current[index + 1]?.focus();
     const fullCode = newDigits.join('');
-    if (fullCode.length === 6) {
-      submitOtp(fullCode);
-    }
+    if (fullCode.length === 6) submitOtp(fullCode);
   }
 
   function handleOtpKeyDown(index: number, e: React.KeyboardEvent<HTMLInputElement>) {
@@ -164,15 +144,10 @@ export default function LoginPage() {
     const pasted = e.clipboardData.getData('text').replace(/\D/g, '').slice(0, 6);
     if (!pasted) return;
     const newDigits = [...otpDigits];
-    for (let i = 0; i < 6; i++) {
-      newDigits[i] = pasted[i] || '';
-    }
+    for (let i = 0; i < 6; i++) newDigits[i] = pasted[i] || '';
     setOtpDigits(newDigits);
-    if (pasted.length === 6) {
-      submitOtp(pasted);
-    } else {
-      otpRefs.current[pasted.length]?.focus();
-    }
+    if (pasted.length === 6) submitOtp(pasted);
+    else otpRefs.current[pasted.length]?.focus();
   }
 
   async function handleDemoLogin() {
@@ -187,7 +162,7 @@ export default function LoginPage() {
       }
       router.push('/');
     } catch {
-      setError('Demo login failed. Please try again.');
+      setError('Demo login failed.');
     } finally {
       setDemoLoading(false);
     }
@@ -196,235 +171,285 @@ export default function LoginPage() {
   async function handleSocialSignIn(provider: 'google' | 'apple') {
     setLoading(true);
     setError(null);
-
     try {
-      await authClient.signIn.social({
-        provider,
-        callbackURL: '/onboarding',
-      });
+      await authClient.signIn.social({ provider, callbackURL: '/onboarding' });
     } catch {
-      setError(`Failed to sign in with ${provider === 'google' ? 'Google' : 'Apple'}. Please try again.`);
+      setError(`Failed to sign in with ${provider === 'google' ? 'Google' : 'Apple'}.`);
       setLoading(false);
     }
   }
 
-  return (
-    <div className="flex min-h-[100dvh] flex-col items-center justify-center bg-[var(--color-bg)] relative overflow-hidden px-6">
-      {/* Warm gradient orbs */}
-      <div className="absolute top-[-20%] right-[-15%] h-[500px] w-[500px] rounded-full bg-[var(--color-primary)] opacity-[0.04] blur-[100px]" />
-      <div className="absolute bottom-[-10%] left-[-20%] h-[400px] w-[400px] rounded-full bg-[var(--color-accent)] opacity-[0.05] blur-[80px]" />
-
-      <div className="relative z-10 w-full max-w-sm">
-        {/* -- Branding -- */}
-        <div className="flex flex-col items-center">
-          {/* Logo mark */}
-          <div
-            className="animate-fade-up mb-6 flex h-20 w-20 items-center justify-center rounded-[22px] bg-[var(--color-secondary)]"
-            style={{ boxShadow: '0 8px 32px rgba(28, 30, 42, 0.2)' }}
+  // ── OTP Verify Screen ─────────────────────────────────────────────────────
+  if (step === 'otp-verify') {
+    return (
+      <div className="flex min-h-[100dvh] flex-col items-center justify-center bg-[var(--color-surface-subtle)] px-6">
+        <div className="w-full max-w-md">
+          <button
+            onClick={() => { setStep('form'); setError(null); setOtpDigits(['', '', '', '', '', '']); }}
+            className="flex items-center gap-1 text-sm font-medium text-[var(--color-text-secondary)] hover:text-[var(--color-text-primary)] transition-colors mb-6"
           >
-            <span className="font-display text-3xl font-extrabold text-white tracking-tight">C</span>
-          </div>
+            <ArrowLeft size={16} /> Back
+          </button>
 
-          <h1
-            className="animate-fade-up font-display text-[42px] font-extrabold tracking-tight text-[var(--color-secondary)]"
-            style={{ '--stagger': 1 } as React.CSSProperties}
-          >
-            Clubd
-          </h1>
-
-          <p
-            className="animate-fade-up mt-2 text-lg font-medium text-[var(--color-text-secondary)]"
-            style={{ '--stagger': 2 } as React.CSSProperties}
-          >
-            Find Your People
+          <h2 className="text-2xl font-bold text-[var(--color-text-primary)] mb-2">Verify your number</h2>
+          <p className="text-sm text-[var(--color-text-secondary)] mb-6">
+            Enter the 6-digit code sent to <span className="font-semibold text-[var(--color-text-primary)]">+1 {formatPhoneDisplay(phoneNumber)}</span>
           </p>
 
-          {/* Brand accent line */}
-          <div className="animate-fade-up mt-6 flex items-center gap-2" style={{ '--stagger': 3 } as React.CSSProperties}>
-            <span className="h-[3px] w-[3px] rounded-full bg-[var(--color-primary)]" />
-            <span className="h-[3px] w-8 rounded-full bg-[var(--color-primary)] opacity-40" />
-            <span className="h-[3px] w-[3px] rounded-full bg-[var(--color-primary)]" />
+          {error && <div className="mb-4 rounded-xl border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700">{error}</div>}
+
+          <div className="flex justify-between gap-2 mb-6" onPaste={handleOtpPaste}>
+            {otpDigits.map((digit, i) => (
+              <input
+                key={i}
+                ref={(el) => { otpRefs.current[i] = el; }}
+                type="text"
+                inputMode="numeric"
+                autoFocus={i === 0}
+                maxLength={1}
+                value={digit}
+                onChange={(e) => handleOtpDigitChange(i, e.target.value)}
+                onKeyDown={(e) => handleOtpKeyDown(i, e)}
+                disabled={loading}
+                className="h-14 w-12 flex-1 rounded-xl border border-gray-200 bg-white text-center text-2xl font-bold text-[var(--color-text-primary)] outline-none focus:border-[var(--color-brand-500)] focus:ring-1 focus:ring-[var(--color-brand-500)] transition-all disabled:opacity-50"
+              />
+            ))}
           </div>
 
-          {step === 'methods' && (
-            <p
-              className="animate-fade-up mt-6 max-w-[280px] text-center text-[15px] leading-relaxed text-[var(--color-text-muted)]"
-              style={{ '--stagger': 4 } as React.CSSProperties}
-            >
-              Discover free local events, connect with friends, and find your next favorite thing to do in SoCal.
-            </p>
+          {loading && (
+            <div className="flex items-center justify-center gap-2 text-sm text-[var(--color-text-secondary)] mb-4">
+              <Loader2 size={16} className="animate-spin" /> Verifying...
+            </div>
           )}
+
+          <button
+            onClick={() => { handleSendOtp(); setResendTimer(60); }}
+            disabled={loading || resendTimer > 0}
+            className="text-sm font-semibold text-[var(--color-brand-600)] disabled:text-[var(--color-text-muted)]"
+          >
+            {resendTimer > 0 ? `Resend code in ${resendTimer}s` : 'Resend code'}
+          </button>
+        </div>
+      </div>
+    );
+  }
+
+  // ── Main Login Form ───────────────────────────────────────────────────────
+  return (
+    <div className="bg-[var(--color-surface-subtle)] text-[var(--color-text-primary)] w-full min-h-screen overflow-x-hidden m-0 p-0 flex flex-col md:flex-row">
+      {/* ── Left: Hero (Desktop Only) ─────────────────────────── */}
+      <div className="hidden md:flex md:w-1/2 lg:w-[55%] relative flex-col justify-between p-12 bg-gradient-to-br from-[var(--color-brand-100)] via-[var(--color-brand-50)] to-white overflow-hidden grain-bg">
+        {/* Abstract Shapes */}
+        <div className="absolute top-[-10%] left-[-10%] w-[500px] h-[500px] rounded-full bg-[var(--color-brand-300)] opacity-20 blur-[100px] mix-blend-multiply" />
+        <div className="absolute bottom-[-10%] right-[-10%] w-[600px] h-[600px] rounded-full bg-blue-300 opacity-20 blur-[120px] mix-blend-multiply" />
+
+        <div className="relative z-20">
+          <div className="flex items-center gap-3 mb-16">
+            <div className="w-10 h-10 rounded-xl bg-[var(--color-brand-500)] text-white flex items-center justify-center shadow-lg shadow-[var(--color-brand-500)]/30">
+              <Users size={20} />
+            </div>
+            <span className="font-display font-bold text-2xl tracking-tight text-[var(--color-text-primary)]">Clubd</span>
+          </div>
+
+          <div className="max-w-md">
+            <h1 className="text-4xl lg:text-5xl font-display font-bold text-[var(--color-text-primary)] leading-[1.1] mb-6">
+              Discover local events through your social graph.
+            </h1>
+            <p className="text-lg text-[var(--color-text-secondary)] mb-10 leading-relaxed">
+              Join run clubs, yoga sessions, and community gatherings based on where your friends are going. Social proof makes discovery authentic.
+            </p>
+
+            {/* Social Proof Card */}
+            <div className="glass-pill rounded-2xl p-6 shadow-xl shadow-[var(--color-brand-900)]/5 transform rotate-[-2deg] hover:rotate-0 transition-transform duration-300 w-full max-w-sm border border-white/30">
+              <div className="flex justify-between items-start mb-4">
+                <div>
+                  <span className="inline-block px-3 py-1 rounded-full bg-[var(--color-brand-100)] text-[var(--color-brand-700)] text-xs font-semibold mb-2">Wellness</span>
+                  <h3 className="font-bold text-[var(--color-text-primary)]">Sunrise Yoga & Coffee</h3>
+                  <p className="text-sm text-[var(--color-text-secondary)]">Sat, 8:00 AM &middot; Dolores Park</p>
+                </div>
+              </div>
+              <div className="flex items-center justify-between mt-6">
+                <div className="flex items-center">
+                  <div className="flex -space-x-3">
+                    <div className="w-8 h-8 rounded-full bg-[var(--color-brand-200)] border-2 border-white" />
+                    <div className="w-8 h-8 rounded-full bg-[var(--color-brand-300)] border-2 border-white" />
+                    <div className="w-8 h-8 rounded-full bg-[var(--color-brand-400)] border-2 border-white" />
+                  </div>
+                  <span className="ml-3 text-sm font-medium text-[var(--color-text-secondary)]">14 Pals going</span>
+                </div>
+                <span className="px-4 py-2 rounded-full bg-[var(--color-brand-500)] text-white text-sm font-semibold shadow-md shadow-[var(--color-brand-500)]/20">
+                  Interested
+                </span>
+              </div>
+            </div>
+          </div>
         </div>
 
-        {/* -- Error Display -- */}
-        {error && (
-          <div className="mt-4 rounded-[var(--radius-card)] border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700">
-            {error}
+        <div className="relative z-20 flex items-center gap-4 text-sm text-[var(--color-text-secondary)]">
+          <ShieldCheck size={16} className="text-[var(--color-brand-500)]" />
+          <span>Verified hosts & authentic community reviews.</span>
+        </div>
+      </div>
+
+      {/* ── Right: Auth Form ──────────────────────────────────── */}
+      <div className="w-full md:w-1/2 lg:w-[45%] flex flex-col justify-center min-h-screen bg-white relative px-5 py-8 sm:px-10 lg:px-16 xl:px-20">
+        {/* Mobile Header */}
+        <div className="md:hidden flex flex-col items-center mb-8 text-center">
+          <div className="w-12 h-12 rounded-2xl bg-[var(--color-brand-500)] text-white flex items-center justify-center shadow-lg shadow-[var(--color-brand-500)]/30 mb-4">
+            <Users size={24} />
           </div>
-        )}
+          <h1 className="font-display font-bold text-3xl text-[var(--color-text-primary)] mb-2">Clubd</h1>
+          <p className="text-[var(--color-text-secondary)] text-sm max-w-[280px]">Find local events through your social graph.</p>
+        </div>
 
-        {/* -- Auth Methods -- */}
-        {step === 'methods' && (
-          <div className="mt-10 flex flex-col gap-3">
-            <button
-              onClick={() => { setStep('phone-input'); setError(null); }}
-              disabled={loading}
-              className="animate-fade-up btn-press flex h-14 w-full items-center justify-center gap-3 rounded-[var(--radius-button)] bg-[var(--color-secondary)] font-semibold text-white"
-              style={{ '--stagger': 5, boxShadow: '0 4px 16px rgba(28, 30, 42, 0.2)' } as React.CSSProperties}
-            >
-              <Phone className="h-5 w-5" strokeWidth={1.8} />
-              Continue with Phone
-            </button>
-
-            <button
-              onClick={() => handleSocialSignIn('apple')}
-              disabled={loading}
-              className="animate-fade-up btn-press flex h-14 w-full items-center justify-center gap-3 rounded-[var(--radius-button)] bg-black font-semibold text-white"
-              style={{ '--stagger': 6, boxShadow: '0 4px 16px rgba(0, 0, 0, 0.15)' } as React.CSSProperties}
-            >
-              {loading ? <Loader2 className="h-5 w-5 animate-spin" /> : <AppleIcon />}
-              Continue with Apple
-            </button>
-
-            <button
-              onClick={() => handleSocialSignIn('google')}
-              disabled={loading}
-              className="animate-fade-up btn-press flex h-14 w-full items-center justify-center gap-3 rounded-[var(--radius-button)] border border-[var(--color-border)] bg-[var(--color-card)] font-semibold text-[var(--color-text-primary)]"
-              style={{ '--stagger': 7, boxShadow: 'var(--shadow-xs)' } as React.CSSProperties}
-            >
-              {loading ? <Loader2 className="h-5 w-5 animate-spin" /> : <GoogleIcon />}
-              Continue with Google
-            </button>
+        <div className="w-full max-w-md mx-auto">
+          <div className="mb-6 md:mb-8 text-center md:text-left">
+            <h2 className="text-xl md:text-2xl font-bold text-[var(--color-text-primary)] mb-1.5">Welcome in</h2>
+            <p className="text-[var(--color-text-secondary)]">Enter your phone number to get started.</p>
           </div>
-        )}
 
-        {/* -- Phone Input Step -- */}
-        {step === 'phone-input' && (
-          <div className="mt-8 flex flex-col gap-4" style={{ animation: 'fadeIn 0.3s ease-out' }}>
-            <button
-              onClick={() => { setStep('methods'); setError(null); setPhoneNumber(''); }}
-              className="flex items-center gap-1 text-sm font-medium text-[var(--color-text-secondary)] hover:text-[var(--color-text-primary)] transition-colors"
-            >
-              <ArrowLeft className="h-4 w-4" />
-              Back
-            </button>
+          {error && <div className="mb-4 rounded-xl border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700">{error}</div>}
 
-            <p className="text-sm text-[var(--color-text-secondary)]">
-              Enter your phone number and we&apos;ll text you a code.
-            </p>
-
-            <div className="flex items-center gap-2">
-              <span className="flex h-14 items-center rounded-[var(--radius-button)] border border-[var(--color-border)] bg-[var(--color-card)] px-4 text-[15px] font-medium text-[var(--color-text-secondary)]">
-                +1
-              </span>
-              <input
-                type="tel"
-                inputMode="numeric"
-                autoFocus
-                placeholder="(555) 123-4567"
-                value={formatPhoneDisplay(phoneNumber)}
-                onChange={(e) => handlePhoneInputChange(e.target.value)}
-                className="h-14 flex-1 rounded-[var(--radius-button)] border border-[var(--color-border)] bg-[var(--color-card)] px-4 text-[15px] font-medium text-[var(--color-text-primary)] placeholder:text-[var(--color-text-muted)] outline-none focus:border-[var(--color-primary)] transition-colors"
-              />
+          <form className="space-y-5" onSubmit={(e) => { e.preventDefault(); handleSendOtp(); }}>
+            {/* Phone Input */}
+            <div className="space-y-1.5">
+              <label htmlFor="phone" className="block text-sm font-medium text-[var(--color-text-secondary)]">Phone Number</label>
+              <div className="relative flex rounded-xl shadow-sm border border-gray-200 focus-within:border-[var(--color-brand-500)] focus-within:ring-1 focus-within:ring-[var(--color-brand-500)] transition-all overflow-hidden bg-gray-50">
+                <div className="flex items-center px-4 border-r border-gray-200 bg-gray-100 text-[var(--color-text-secondary)] font-medium text-sm">
+                  <span>+1</span>
+                  <ChevronDown size={12} className="ml-1.5 text-[var(--color-text-muted)]" />
+                </div>
+                <input
+                  type="tel"
+                  id="phone"
+                  inputMode="numeric"
+                  placeholder="(555) 000-0000"
+                  value={formatPhoneDisplay(phoneNumber)}
+                  onChange={(e) => handlePhoneInputChange(e.target.value)}
+                  className="flex-1 block w-full px-4 py-3.5 bg-transparent border-0 focus:ring-0 text-[var(--color-text-primary)] placeholder:text-[var(--color-text-muted)] text-sm outline-none"
+                />
+              </div>
             </div>
 
+            {/* Send Code Button */}
             <button
-              onClick={handleSendOtp}
+              type="submit"
               disabled={phoneNumber.length !== 10 || loading}
-              className={`btn-press flex h-14 w-full items-center justify-center gap-2 rounded-[var(--radius-button)] font-bold text-white transition-all ${
+              className={`w-full flex justify-center py-3.5 px-4 border border-transparent rounded-xl shadow-md text-sm font-semibold text-white transition-all active:scale-[0.98] ${
                 phoneNumber.length === 10 && !loading
-                  ? 'bg-[var(--color-primary)]'
+                  ? 'bg-[var(--color-brand-500)] hover:bg-[var(--color-brand-600)] shadow-[var(--color-brand-500)]/20'
                   : 'bg-[var(--color-text-muted)] cursor-not-allowed'
               }`}
-              style={phoneNumber.length === 10 && !loading ? { boxShadow: 'var(--shadow-button)' } : undefined}
             >
-              {loading ? (
-                <Loader2 className="h-5 w-5 animate-spin" />
-              ) : (
-                'Send Code'
-              )}
-            </button>
-          </div>
-        )}
-
-        {/* -- OTP Verify Step -- */}
-        {step === 'otp-verify' && (
-          <div className="mt-8 flex flex-col gap-4" style={{ animation: 'fadeIn 0.3s ease-out' }}>
-            <button
-              onClick={() => { setStep('phone-input'); setError(null); setOtpDigits(['', '', '', '', '', '']); }}
-              className="flex items-center gap-1 text-sm font-medium text-[var(--color-text-secondary)] hover:text-[var(--color-text-primary)] transition-colors"
-            >
-              <ArrowLeft className="h-4 w-4" />
-              Back
+              {loading ? <Loader2 size={18} className="animate-spin" /> : 'Send SMS Code'}
             </button>
 
-            <p className="text-sm text-[var(--color-text-secondary)]">
-              Enter the 6-digit code sent to{' '}
-              <span className="font-semibold text-[var(--color-text-primary)]">
-                +1 {formatPhoneDisplay(phoneNumber)}
-              </span>
-            </p>
-
-            {/* 6 individual digit boxes */}
-            <div className="flex justify-between gap-2" onPaste={handleOtpPaste}>
-              {otpDigits.map((digit, i) => (
-                <input
-                  key={i}
-                  ref={(el) => { otpRefs.current[i] = el; }}
-                  type="text"
-                  inputMode="numeric"
-                  autoFocus={i === 0}
-                  maxLength={1}
-                  value={digit}
-                  onChange={(e) => handleOtpDigitChange(i, e.target.value)}
-                  onKeyDown={(e) => handleOtpKeyDown(i, e)}
-                  disabled={loading}
-                  className="h-14 w-12 flex-1 rounded-[var(--radius-button)] border border-[var(--color-border)] bg-[var(--color-card)] text-center text-2xl font-bold text-[var(--color-text-primary)] outline-none focus:border-[var(--color-primary)] transition-colors disabled:opacity-50"
-                />
-              ))}
+            {/* Divider */}
+            <div className="relative py-4">
+              <div className="absolute inset-0 flex items-center"><div className="w-full border-t border-gray-200" /></div>
+              <div className="relative flex justify-center">
+                <span className="px-3 bg-white text-xs text-[var(--color-text-muted)] uppercase tracking-wider">Or continue with</span>
+              </div>
             </div>
 
-            {loading && (
-              <div className="flex items-center justify-center gap-2 text-sm text-[var(--color-text-secondary)]">
-                <Loader2 className="h-4 w-4 animate-spin" />
-                Verifying...
-              </div>
+            {/* Social Auth */}
+            <div className="grid grid-cols-1 gap-3">
+              <button
+                type="button"
+                onClick={() => handleSocialSignIn('apple')}
+                disabled={loading}
+                className="w-full flex items-center justify-center px-4 py-3 border border-gray-200 rounded-xl shadow-sm bg-white text-sm font-medium text-[var(--color-text-primary)] hover:bg-gray-50 transition-colors"
+              >
+                <AppleIcon />
+                <span className="ml-3">Continue with Apple</span>
+              </button>
+              <button
+                type="button"
+                onClick={() => handleSocialSignIn('google')}
+                disabled={loading}
+                className="w-full flex items-center justify-center px-4 py-3 border border-gray-200 rounded-xl shadow-sm bg-white text-sm font-medium text-[var(--color-text-primary)] hover:bg-gray-50 transition-colors"
+              >
+                <GoogleIcon />
+                <span className="ml-3">Continue with Google</span>
+              </button>
+            </div>
+
+            {/* Demo Login */}
+            {showDemoLogin && (
+              <button
+                type="button"
+                onClick={handleDemoLogin}
+                disabled={demoLoading}
+                className="w-full flex items-center justify-center px-4 py-3 border border-gray-200 rounded-xl shadow-sm bg-white text-sm font-medium text-[var(--color-brand-600)] hover:bg-[var(--color-brand-50)] transition-colors"
+              >
+                {demoLoading ? <Loader2 size={16} className="animate-spin mr-2" /> : null}
+                {demoLoading ? 'Signing in...' : 'Try as Demo User'}
+              </button>
             )}
 
-            <button
-              onClick={() => { handleSendOtp(); setResendTimer(60); }}
-              disabled={loading || resendTimer > 0}
-              className="text-sm font-semibold text-[var(--color-primary)] underline underline-offset-2 disabled:opacity-50 disabled:no-underline"
-            >
-              {resendTimer > 0 ? `Resend code in ${resendTimer}s` : 'Resend code'}
-            </button>
-          </div>
-        )}
+            {/* Permissions Toggles */}
+            <div className="mt-8 space-y-4 bg-gray-50 rounded-xl p-4 border border-gray-100">
+              <h3 className="text-xs font-semibold text-[var(--color-text-secondary)] uppercase tracking-wider mb-2">Enhance your experience</h3>
 
-        {/* Demo user */}
-        {step === 'methods' && showDemoLogin && (
-          <div className="animate-fade-up mt-6 text-center" style={{ '--stagger': 8 } as React.CSSProperties}>
-            <button
-              onClick={handleDemoLogin}
-              disabled={demoLoading}
-              className="text-sm font-semibold text-[var(--color-primary)] underline underline-offset-2 disabled:opacity-50"
-            >
-              {demoLoading ? 'Signing in...' : 'Try as demo user'}
-            </button>
-            <span className="ml-2 rounded-full bg-[var(--color-primary)] bg-opacity-10 px-2.5 py-0.5 text-[10px] font-bold tracking-wider text-[var(--color-primary)] uppercase">
-              Beta
-            </span>
-          </div>
-        )}
+              <div className="flex items-center justify-between">
+                <div className="flex items-center gap-3">
+                  <div className="w-8 h-8 rounded-full bg-blue-100 text-blue-600 flex items-center justify-center">
+                    <BookUser size={14} />
+                  </div>
+                  <div>
+                    <p className="text-sm font-medium text-[var(--color-text-primary)]">Find Friends</p>
+                    <p className="text-xs text-[var(--color-text-secondary)]">Sync contacts to see who&apos;s going</p>
+                  </div>
+                </div>
+                <button
+                  type="button"
+                  onClick={() => setContactsEnabled(!contactsEnabled)}
+                  className={`relative w-10 h-6 rounded-full transition-colors ${contactsEnabled ? 'bg-[var(--color-brand-500)]' : 'bg-gray-300'}`}
+                >
+                  <span className={`absolute top-0.5 w-5 h-5 rounded-full bg-white shadow transition-all ${contactsEnabled ? 'right-0.5' : 'left-0.5'}`} />
+                </button>
+              </div>
 
-        {/* Terms */}
-        {step === 'methods' && (
-          <p className="mt-6 text-center text-xs leading-relaxed text-[var(--color-text-muted)]">
-            By continuing, you agree to our{' '}
-            <span className="underline underline-offset-2">Terms of Service</span> and{' '}
-            <span className="underline underline-offset-2">Privacy Policy</span>
-          </p>
-        )}
+              <div className="flex items-center justify-between">
+                <div className="flex items-center gap-3">
+                  <div className="w-8 h-8 rounded-full bg-emerald-100 text-emerald-600 flex items-center justify-center">
+                    <MapPin size={14} />
+                  </div>
+                  <div>
+                    <p className="text-sm font-medium text-[var(--color-text-primary)]">Local Events</p>
+                    <p className="text-xs text-[var(--color-text-secondary)]">Use location for nearby activities</p>
+                  </div>
+                </div>
+                <button
+                  type="button"
+                  onClick={() => setLocationEnabled(!locationEnabled)}
+                  className={`relative w-10 h-6 rounded-full transition-colors ${locationEnabled ? 'bg-[var(--color-brand-500)]' : 'bg-gray-300'}`}
+                >
+                  <span className={`absolute top-0.5 w-5 h-5 rounded-full bg-white shadow transition-all ${locationEnabled ? 'right-0.5' : 'left-0.5'}`} />
+                </button>
+              </div>
+            </div>
+
+            {/* Legal */}
+            <div className="mt-6 text-center">
+              <p className="text-xs text-[var(--color-text-secondary)]">
+                By continuing, you agree to Clubd&apos;s{' '}
+                <span className="text-[var(--color-brand-600)] font-medium hover:underline cursor-pointer">Terms of Service</span> and{' '}
+                <span className="text-[var(--color-brand-600)] font-medium hover:underline cursor-pointer">Privacy Policy</span>.
+              </p>
+            </div>
+          </form>
+        </div>
+
+        {/* Mobile Social Proof Footer */}
+        <div className="md:hidden mt-auto pt-8 flex justify-center items-center gap-2">
+          <div className="flex -space-x-2">
+            <div className="w-6 h-6 rounded-full bg-[var(--color-brand-200)] border border-white" />
+            <div className="w-6 h-6 rounded-full bg-[var(--color-brand-300)] border border-white" />
+            <div className="w-6 h-6 rounded-full bg-[var(--color-brand-400)] border border-white" />
+          </div>
+          <span className="text-xs text-[var(--color-text-secondary)] font-medium">Join 20k+ locals discovering events</span>
+        </div>
       </div>
     </div>
   );

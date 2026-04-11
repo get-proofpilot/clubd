@@ -17,3 +17,4 @@ export { eventImages } from "./event-images";
 export { eventCoHosts } from "./event-co-hosts";
 export { eventAnnouncements } from "./event-announcements";
 export { eventViews, eventViewTypeEnum } from "./event-views";
+export { communities, communityTypeEnum } from "./communities";

@@ -1,170 +1,292 @@
 'use client';
 
+import { useState } from 'react';
 import Link from 'next/link';
-import { Calendar, Star, Settings, ChevronRight } from 'lucide-react';
+import {
+  Share2,
+  Settings,
+  MapPin,
+  BadgeCheck,
+  Bookmark,
+  MoreHorizontal,
+  Plus,
+} from 'lucide-react';
 import { currentUser, events, reviews, rsvps } from '@/lib/mock-data';
 import { EventCategory } from '@/lib/types';
-import { formatDate, getCategoryLabel, getCategoryColor } from '@/lib/utils';
-import BottomNav from '@/components/BottomNav';
+import type { Event } from '@/lib/types';
+import MobileContainer from '@/components/MobileContainer';
 
-const INTEREST_CATEGORIES = [
+const INTEREST_LABELS: Record<string, string> = {
+  [EventCategory.Fitness]: 'Run Clubs',
+  [EventCategory.Wellness]: 'Yoga',
+  [EventCategory.FoodDrink]: 'Coffee Meets',
+  [EventCategory.Creative]: 'Art Exhibitions',
+  [EventCategory.Outdoor]: 'Hiking',
+  [EventCategory.Social]: 'Social Events',
+};
+
+const INTERESTS = [
   EventCategory.Fitness,
   EventCategory.Wellness,
   EventCategory.FoodDrink,
-  EventCategory.Outdoor,
-  EventCategory.Social,
+  EventCategory.Creative,
 ];
 
-export default function ProfilePage() {
-  const goingEventIds = rsvps.filter((r) => r.userId === currentUser.id && r.status === 'going').map((r) => r.eventId);
-  const interestedEventIds = rsvps.filter((r) => r.userId === currentUser.id && r.status === 'interested').map((r) => r.eventId);
-  const attendedEventIds = rsvps.filter((r) => r.userId === currentUser.id && r.status === 'attended').map((r) => r.eventId);
+type ProfileTab = 'upcoming' | 'past' | 'saved' | 'reviews';
 
-  const upcomingEvents = events.filter((e) => goingEventIds.includes(e.id) || interestedEventIds.includes(e.id));
-  const pastEvents = events.filter((e) => attendedEventIds.includes(e.id));
+export default function ProfilePage() {
+  const [activeTab, setActiveTab] = useState<ProfileTab>('upcoming');
+
+  const goingIds = rsvps.filter((r) => r.userId === currentUser.id && r.status === 'going').map((r) => r.eventId);
+  const interestedIds = rsvps.filter((r) => r.userId === currentUser.id && r.status === 'interested').map((r) => r.eventId);
+  const attendedIds = rsvps.filter((r) => r.userId === currentUser.id && r.status === 'attended').map((r) => r.eventId);
+
+  const upcomingEvents = events.filter((e) => goingIds.includes(e.id) || interestedIds.includes(e.id));
+  const pastEvents = events.filter((e) => attendedIds.includes(e.id));
+  const savedEvents = events.slice(0, 3); // Mock saved
   const myReviews = reviews.filter((r) => r.userId === currentUser.id);
 
+  const tabs: { key: ProfileTab; label: string }[] = [
+    { key: 'upcoming', label: 'Upcoming' },
+    { key: 'past', label: 'Past Events' },
+    { key: 'saved', label: 'Saved' },
+    { key: 'reviews', label: 'Reviews' },
+  ];
+
   return (
-    <div className="min-h-screen bg-[var(--color-bg)] pb-24">
+    <MobileContainer>
       {/* Header */}
-      <header className="bg-[var(--color-card)] pb-6 pt-[max(env(safe-area-inset-top),16px)] border-b border-[var(--color-border-subtle)]">
-        <div className="mx-auto max-w-3xl px-5 sm:px-8">
-          <div className="flex items-center justify-between">
-            <h1 className="font-display text-lg font-bold text-[var(--color-text-primary)]">Profile</h1>
-            <button className="tap-target flex items-center justify-center" onClick={() => alert('Settings coming soon!')}>
-              <Settings className="h-5 w-5 text-[var(--color-text-secondary)]" strokeWidth={1.8} />
-            </button>
-          </div>
-
-          <div className="mt-6 flex flex-col items-center sm:flex-row sm:items-center sm:gap-6">
-            <img
-              src={currentUser.avatar}
-              alt={currentUser.name}
-              className="h-24 w-24 rounded-full bg-[var(--color-surface-subtle)] object-cover ring-4 ring-[var(--color-primary)]/10"
-            />
-            <div className="mt-3 text-center sm:mt-0 sm:text-left">
-              <h2 className="font-display text-xl font-bold text-[var(--color-text-primary)]">{currentUser.name}</h2>
-              <p className="text-sm text-[var(--color-text-muted)]">Member since Jan 2026</p>
-            </div>
-          </div>
-
-          <div className="mt-5 flex items-center justify-center gap-0 divide-x divide-[var(--color-border)] sm:justify-start">
-            <div className="flex flex-col items-center px-6 sm:pl-0">
-              <span className="text-lg font-bold text-[var(--color-text-primary)]">{currentUser.eventsAttended}</span>
-              <span className="text-xs text-[var(--color-text-muted)]">Events</span>
-            </div>
-            <div className="flex flex-col items-center px-6">
-              <span className="text-lg font-bold text-[var(--color-text-primary)]">{myReviews.length}</span>
-              <span className="text-xs text-[var(--color-text-muted)]">Reviews</span>
-            </div>
-            <div className="flex flex-col items-center px-6">
-              <span className="text-lg font-bold text-[var(--color-text-primary)]">24</span>
-              <span className="text-xs text-[var(--color-text-muted)]">Following</span>
-            </div>
-          </div>
-
-          <div className="mt-5 flex flex-wrap gap-2 sm:justify-start justify-center">
-            {INTEREST_CATEGORIES.map((cat) => (
-              <span key={cat} className={`rounded-full px-3 py-1 text-xs font-semibold text-white ${getCategoryColor(cat)}`}>
-                {getCategoryLabel(cat)}
-              </span>
-            ))}
-          </div>
+      <header className="w-full z-50 flex justify-between items-center px-4 py-3 bg-white/80 backdrop-blur-md sticky top-0 border-b border-gray-100">
+        {/* Mobile title */}
+        <h1 className="md:hidden font-display font-bold text-xl text-[var(--color-text-primary)]">Profile</h1>
+        {/* Desktop spacer (top nav handles the title) */}
+        <div className="hidden md:block" />
+        <div className="flex gap-3">
+          <button className="w-10 h-10 rounded-full bg-[var(--color-surface-subtle)] flex items-center justify-center text-[var(--color-text-primary)] hover:bg-gray-100 transition-colors">
+            <Share2 size={18} strokeWidth={1.8} />
+          </button>
+          <button className="w-10 h-10 rounded-full bg-[var(--color-surface-subtle)] flex items-center justify-center text-[var(--color-text-primary)] hover:bg-gray-100 transition-colors">
+            <Settings size={18} strokeWidth={1.8} />
+          </button>
         </div>
       </header>
 
-      <main className="mx-auto max-w-3xl px-5 pt-6 sm:px-8">
-        <div className="grid grid-cols-1 gap-8 md:grid-cols-2">
-          {/* Upcoming Events */}
-          <section>
-            <div className="flex items-center justify-between">
-              <h3 className="font-display text-base font-bold text-[var(--color-text-primary)]">Upcoming Events</h3>
-              <Link href="/events" className="flex items-center gap-0.5 text-xs font-semibold text-[var(--color-primary)]">
-                See all <ChevronRight className="h-3.5 w-3.5" />
-              </Link>
+      <main className="flex-1 overflow-y-auto pb-4 hide-scroll bg-white">
+        {/* Profile Info */}
+        <section className="content-max px-4 md:px-6 lg:px-8 pt-6 pb-4">
+          <div className="flex items-center gap-4 md:gap-6">
+            <div className="relative">
+              {/* eslint-disable-next-line @next/next/no-img-element */}
+              <img
+                src={currentUser.avatar}
+                alt={currentUser.name}
+                className="w-[72px] h-[72px] md:w-24 md:h-24 rounded-full object-cover border-4 border-[var(--color-surface-purple)]"
+              />
+              <div className="absolute bottom-0 right-0 w-6 h-6 bg-[var(--color-brand-500)] rounded-full border-2 border-white flex items-center justify-center">
+                <BadgeCheck size={12} className="text-white" />
+              </div>
             </div>
-            {upcomingEvents.length === 0 ? (
-              <div className="mt-3 rounded-[var(--radius-card)] bg-[var(--color-card)] p-6 text-center card-shadow">
-                <Calendar className="mx-auto h-8 w-8 text-[var(--color-text-muted)]" strokeWidth={1.8} />
-                <p className="mt-2 text-sm text-[var(--color-text-secondary)]">No upcoming events. Explore the feed!</p>
-              </div>
-            ) : (
-              <div className="mt-3 flex flex-col gap-3">
-                {upcomingEvents.map((event) => (
-                  <Link key={event.id} href={`/event/${event.id}`} className="flex items-center gap-3 rounded-[var(--radius-card)] bg-[var(--color-card)] p-3 card-shadow transition-lift">
-                    <img src={event.coverImage} alt={event.title} className="h-16 w-16 shrink-0 rounded-[var(--radius-md)] object-cover" />
-                    <div className="min-w-0 flex-1">
-                      <p className="truncate text-sm font-semibold text-[var(--color-text-primary)]">{event.title}</p>
-                      <p className="mt-0.5 text-xs text-[var(--color-text-secondary)]">{formatDate(event.date)} &middot; {event.time}</p>
-                      <div className="mt-1 flex items-center gap-1">
-                        <span className={`inline-block h-2 w-2 rounded-full ${getCategoryColor(event.category)}`} />
-                        <span className="text-[11px] text-[var(--color-text-muted)]">{getCategoryLabel(event.category)}</span>
-                      </div>
-                    </div>
-                    <ChevronRight className="h-4 w-4 shrink-0 text-[var(--color-text-muted)]" />
-                  </Link>
-                ))}
-              </div>
-            )}
-          </section>
+            <div className="flex-1">
+              <h2 className="font-display font-bold text-2xl text-[var(--color-text-primary)]">{currentUser.name}</h2>
+              <p className="text-sm text-[var(--color-text-secondary)] flex items-center gap-1 mt-1">
+                <MapPin size={14} className="text-[var(--color-brand-500)]" />
+                Silver Lake, LA
+              </p>
+            </div>
+          </div>
 
-          {/* Reviews */}
-          <section>
-            <h3 className="font-display text-base font-bold text-[var(--color-text-primary)]">My Reviews</h3>
-            {myReviews.length === 0 ? (
-              <div className="mt-3 rounded-[var(--radius-card)] bg-[var(--color-card)] p-6 text-center card-shadow">
-                <Star className="mx-auto h-8 w-8 text-[var(--color-text-muted)]" strokeWidth={1.8} />
-                <p className="mt-2 text-sm text-[var(--color-text-secondary)]">No reviews yet. Attend an event to leave one!</p>
+          {/* Stats + Actions row: stack on mobile, side by side on desktop */}
+          <div className="flex flex-col md:flex-row md:items-center md:justify-between md:gap-8 mt-5">
+            {/* Stats */}
+            <div className="flex gap-5">
+              <div className="text-center">
+                <p className="font-display font-bold text-xl text-[var(--color-text-primary)]">{currentUser.eventsAttended}</p>
+                <p className="text-xs text-[var(--color-text-secondary)] font-medium">Events this month</p>
               </div>
-            ) : (
-              <div className="mt-3 flex flex-col gap-3">
-                {myReviews.map((review) => {
-                  const reviewEvent = events.find((e) => e.id === review.eventId);
-                  return (
-                    <div key={review.id} className="rounded-[var(--radius-card)] bg-[var(--color-card)] p-4 card-shadow">
-                      <div className="flex items-center justify-between">
-                        <p className="text-sm font-semibold text-[var(--color-text-primary)]">{reviewEvent?.title ?? 'Event'}</p>
-                        <div className="flex items-center gap-0.5">
-                          {Array.from({ length: 5 }, (_, i) => (
-                            <Star key={i} className={`h-3.5 w-3.5 ${i < review.rating ? 'fill-[var(--color-accent)] text-[var(--color-accent)]' : 'text-[var(--color-border)]'}`} />
+              <div className="w-px bg-gray-200" />
+              <div className="text-center">
+                <p className="font-display font-bold text-xl text-[var(--color-text-primary)]">148</p>
+                <p className="text-xs text-[var(--color-text-secondary)] font-medium">Friends</p>
+              </div>
+            </div>
+
+            {/* Actions */}
+            <div className="flex gap-2.5 mt-4 md:mt-0 md:w-auto">
+              <button className="flex-1 md:flex-none md:px-8 py-2.5 bg-[var(--color-secondary)] text-white text-sm font-semibold rounded-xl hover:bg-gray-800 transition-colors">
+                Edit Profile
+              </button>
+              <button className="flex-1 md:flex-none md:px-8 py-2.5 bg-[var(--color-surface-subtle)] text-[var(--color-text-primary)] text-sm font-semibold rounded-xl border border-gray-200 hover:bg-gray-50 transition-colors">
+                Find Friends
+              </button>
+            </div>
+          </div>
+        </section>
+
+        {/* Interests */}
+        <section className="content-max px-4 md:px-6 lg:px-8 py-4 border-b border-gray-100">
+          <h3 className="text-sm font-bold text-[var(--color-text-primary)] mb-3">Interests</h3>
+          <div className="flex flex-wrap gap-2">
+            {INTERESTS.map((cat) => (
+              <span
+                key={cat}
+                className="px-3 py-1.5 bg-[var(--color-brand-50)] text-[var(--color-brand-700)] text-xs font-semibold rounded-full border border-[var(--color-brand-200)]"
+              >
+                {INTEREST_LABELS[cat] ?? cat}
+              </span>
+            ))}
+            <button className="w-8 h-8 rounded-full bg-[var(--color-surface-subtle)] flex items-center justify-center text-[var(--color-text-secondary)] hover:bg-gray-100 border border-gray-200">
+              <Plus size={14} />
+            </button>
+          </div>
+        </section>
+
+        {/* Tab Bar */}
+        <section className="sticky top-[73px] bg-white z-40 border-b border-gray-100">
+          <div className="content-max flex overflow-x-auto hide-scroll px-4 md:px-6 lg:px-8">
+            {tabs.map((tab) => (
+              <button
+                key={tab.key}
+                onClick={() => setActiveTab(tab.key)}
+                className={`px-3.5 py-3 text-sm font-semibold shrink-0 transition-colors ${
+                  activeTab === tab.key
+                    ? 'text-[var(--color-text-primary)] border-b-2 border-[var(--color-brand-500)]'
+                    : 'text-[var(--color-text-secondary)] hover:text-[var(--color-text-primary)]'
+                }`}
+              >
+                {tab.label}
+              </button>
+            ))}
+          </div>
+        </section>
+
+        {/* Tab Content */}
+        <section className="bg-[var(--color-surface-subtle)]/30 min-h-[400px]">
+          <div className="content-max px-4 md:px-6 lg:px-8 py-4">
+            {activeTab === 'upcoming' && (
+              <EventCardList events={upcomingEvents} emptyText="No upcoming events" statusMap={Object.fromEntries([
+                ...goingIds.map((id) => [id, 'Going'] as const),
+                ...interestedIds.map((id) => [id, 'Interested'] as const),
+              ])} />
+            )}
+            {activeTab === 'past' && (
+              <EventCardList events={pastEvents} emptyText="No past events yet" statusMap={Object.fromEntries(attendedIds.map((id) => [id, 'Attended'] as const))} />
+            )}
+            {activeTab === 'saved' && (
+              <EventCardList events={savedEvents} emptyText="No saved events" statusMap={{}} />
+            )}
+            {activeTab === 'reviews' && (
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                {myReviews.length === 0 ? (
+                  <p className="text-sm text-[var(--color-text-secondary)] text-center py-12 col-span-full">No reviews yet</p>
+                ) : (
+                  myReviews.map((review) => {
+                    const evt = events.find((e) => e.id === review.eventId);
+                    return (
+                      <div key={review.id} className="bg-white rounded-2xl p-3.5 shadow-[var(--shadow-soft)] border border-gray-100">
+                        <p className="text-sm font-semibold text-[var(--color-text-primary)]">{evt?.title ?? 'Event'}</p>
+                        <div className="flex text-orange-400 text-xs mt-1 gap-0.5">
+                          {Array.from({ length: review.rating }, (_, i) => (
+                            <span key={i}>&#9733;</span>
                           ))}
                         </div>
+                        <p className="mt-2 text-sm text-[var(--color-text-secondary)] italic">&ldquo;{review.text}&rdquo;</p>
                       </div>
-                      <p className="mt-2 text-sm leading-relaxed text-[var(--color-text-secondary)]">{review.text}</p>
-                      <p className="mt-2 text-xs text-[var(--color-text-muted)]">{formatDate(review.createdAt)}</p>
-                    </div>
-                  );
-                })}
+                    );
+                  })
+                )}
               </div>
             )}
-          </section>
-        </div>
-
-        {/* Past Events */}
-        <section className="mt-8">
-          <h3 className="font-display text-base font-bold text-[var(--color-text-primary)]">Past Events</h3>
-          {pastEvents.length === 0 ? (
-            <div className="mt-3 rounded-[var(--radius-card)] bg-[var(--color-card)] p-6 text-center card-shadow max-w-lg">
-              <p className="text-sm text-[var(--color-text-secondary)]">No past events yet.</p>
-            </div>
-          ) : (
-            <div className="mt-3 grid grid-cols-1 gap-3 md:grid-cols-2">
-              {pastEvents.map((event) => (
-                <Link key={event.id} href={`/event/${event.id}`} className="flex items-center gap-3 rounded-[var(--radius-card)] bg-[var(--color-card)] p-3 card-shadow transition-lift">
-                  <img src={event.coverImage} alt={event.title} className="h-16 w-16 shrink-0 rounded-[var(--radius-md)] object-cover opacity-75" />
-                  <div className="min-w-0 flex-1">
-                    <p className="truncate text-sm font-semibold text-[var(--color-text-primary)]">{event.title}</p>
-                    <p className="mt-0.5 text-xs text-[var(--color-text-secondary)]">{formatDate(event.date)} &middot; {event.time}</p>
-                  </div>
-                  <span className="shrink-0 rounded-full bg-[var(--color-surface-subtle)] px-2 py-0.5 text-[10px] font-semibold text-[var(--color-text-muted)]">Attended</span>
-                </Link>
-              ))}
-            </div>
-          )}
+          </div>
         </section>
       </main>
+    </MobileContainer>
+  );
+}
 
-      <BottomNav />
+// ---------------------------------------------------------------------------
+// Profile Event Card List
+// ---------------------------------------------------------------------------
+function EventCardList({
+  events: eventList,
+  emptyText,
+  statusMap,
+}: {
+  events: Event[];
+  emptyText: string;
+  statusMap: Record<string, string>;
+}) {
+  if (eventList.length === 0) {
+    return <p className="text-sm text-[var(--color-text-secondary)] text-center py-12">{emptyText}</p>;
+  }
+
+  const statusColors: Record<string, string> = {
+    Going: 'bg-[var(--color-brand-100)] text-[var(--color-brand-700)]',
+    Interested: 'bg-orange-100 text-orange-700',
+    Attended: 'bg-gray-100 text-gray-600',
+  };
+
+  return (
+    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+      {eventList.map((event) => {
+        const status = statusMap[event.id];
+        const dateStr = new Date(event.date).toLocaleDateString('en-US', {
+          weekday: 'short',
+          month: 'short',
+          day: 'numeric',
+        });
+
+        return (
+          <Link key={event.id} href={`/event/${event.id}`}>
+            <div className="bg-white rounded-2xl p-3.5 shadow-[var(--shadow-soft)] border border-gray-100">
+              <div className="flex justify-between items-start mb-3">
+                <div className="flex items-center gap-2">
+                  {status && (
+                    <span className={`px-2.5 py-1 text-[10px] font-bold uppercase tracking-wider rounded-md ${statusColors[status] ?? 'bg-gray-100 text-gray-600'}`}>
+                      {status}
+                    </span>
+                  )}
+                  <span className="text-xs text-[var(--color-text-secondary)] font-medium">{dateStr}, {event.time}</span>
+                </div>
+                <button className="text-[var(--color-text-secondary)] hover:text-[var(--color-brand-500)]" onClick={(e) => e.preventDefault()}>
+                  <Bookmark size={16} />
+                </button>
+              </div>
+
+              <h4 className="font-display font-bold text-lg text-[var(--color-text-primary)] mb-1">{event.title}</h4>
+              <p className="text-sm text-[var(--color-text-secondary)] mb-4 flex items-center gap-1">
+                <MapPin size={12} /> {event.location.name.split(',')[0]}
+              </p>
+
+              <div className="flex items-center justify-between mt-4 pt-4 border-t border-gray-100">
+                <div className="flex items-center">
+                  <div className="flex -space-x-2">
+                    {event.friendsGoing.slice(0, 3).map((friend) => (
+                      // eslint-disable-next-line @next/next/no-img-element
+                      <img
+                        key={friend.id}
+                        src={friend.avatar}
+                        alt={friend.name}
+                        className="w-8 h-8 rounded-full border-2 border-white"
+                      />
+                    ))}
+                  </div>
+                  {event.friendsGoing.length > 0 && (
+                    <span className="text-xs text-[var(--color-text-secondary)] ml-2 font-medium">
+                      +{event.friendsGoing.length} friends going
+                    </span>
+                  )}
+                </div>
+                <button
+                  className="w-8 h-8 rounded-full bg-[var(--color-surface-subtle)] flex items-center justify-center text-[var(--color-text-primary)]"
+                  onClick={(e) => e.preventDefault()}
+                >
+                  <MoreHorizontal size={16} />
+                </button>
+              </div>
+            </div>
+          </Link>
+        );
+      })}
     </div>
   );
 }

@@ -67,6 +67,24 @@ export default function EventCard({ event, index = 0 }: EventCardProps) {
           {categoryLabels[category]}
         </span>
 
+        {/* Price badge */}
+        {event.pricingType === 'paid' && event.ticketTiers && event.ticketTiers.length > 0 && (
+          <span
+            className="absolute top-3.5 right-3.5 rounded-full bg-white/90 px-3 py-1 text-[11px] font-bold tracking-wider text-[var(--color-text-primary)] uppercase backdrop-blur-sm"
+            style={{ boxShadow: "var(--shadow-pill)" }}
+          >
+            From ${(Math.min(...event.ticketTiers.map((t) => t.priceInCents)) / 100).toFixed(0)}
+          </span>
+        )}
+        {event.pricingType === 'free' && (
+          <span
+            className="absolute top-3.5 right-3.5 rounded-full px-3 py-1 text-[11px] font-bold tracking-wider uppercase"
+            style={{ backgroundColor: 'var(--color-success-muted)', color: 'var(--color-success)', boxShadow: "var(--shadow-pill)" }}
+          >
+            Free
+          </span>
+        )}
+
         {/* Title + date overlay */}
         <div className="absolute bottom-0 left-0 right-0 p-4">
           <h3 className="font-display text-[19px] font-bold leading-snug text-white drop-shadow-sm line-clamp-2">
